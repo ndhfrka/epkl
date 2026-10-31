@@ -1,0 +1,58 @@
+
+> epkl4-siswa@3.0 dev
+> nuxt dev
+
+|
+•  [32mNuxt [1m3.21.11[22m[39m[90m (with [39m[90mNitro [1m2.13.4[22m[39m[90m, Vite [1m7.3.6[22m[39m[90m and Vue [1m3.5.42[22m[39m[90m)[39m
+[get-port] Unable to find an available port (tried 3001 on host "0.0.0.0"). Using alternative port 3000.
+
+ 
+              █▀▀▀▀▀▀▀███▀█▀▀████▀▀▀▀▀▀▀█
+              █ █▀▀▀█ █▄█▄█▀▄▄▄██ █▀▀▀█ █
+              █ █   █ █▄ ▄█▄▄▀▄▄█ █   █ █
+              █ ▀▀▀▀▀ █ ▄▀▄ █▀▄ █ ▀▀▀▀▀ █
+              █▀▀▀▀▀█▀▀▀ ▄ █▀▄▄▀▀█▀█▀█▀██
+              █▀▀█ █ ▀▄▀█ █▄ ▄▀▀▄▀▀▀▀█ ▀█
+              █▄▄▄▄  ▀██▀▀█ ▀█ ▀█▀ ▀█▀▀ █
+              █ ▄▄█▄ ▀ █▀▀▀▀▀▄▀█▀█▀█ █ ▀█
+              █ █ ▄▀█▀▀ ▀  ▀▀▄█ ▀▀▀▀▄▀█▄█
+              █▀▀▀▀▀▀▀█ █▀█▄█▄▄ █▀█   ▀▀█
+              █ █▀▀▀█ █▀ ▄ ▀▀█  ▀▀▀  ▀▄▄█
+              █ █   █ █ ▀█▄ █▄ █▀▄▄▄█ ▄ █
+              █ ▀▀▀▀▀ █ █ █▄▀█▀▄█▄   ▀▀ █
+              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+ 
+[32m  ➜ Local:   [39m [36m[4mhttp://0.0.0.0:[1m3000[22m/[24m[39m
+[35m  ➜ Network: [39m [36m[4mhttp://172.20.192.1:[1m3000[22m/[24m[39m[90m [QR code][39m
+[35m  ➜ Network: [39m [36m[4mhttp://192.168.1.5:[1m3000[22m/[24m[39m
+
+[32m√[39m Vite client built in 888ms
+[32m√[39m Vite server built in 10452ms
+[90m[[90mnitro[90m][39m [32m√[39m Nuxt Nitro server built in 10899ms
+[36mi[39m Vite client warmed up in 42ms
+[36mi[39m nuxt.config.ts updated. Restarting Nuxt...
+[32m√[39m Vite client built in 82ms
+[32m√[39m Vite server built in 1310ms
+[90m[[90mnitro[90m][39m [32m√[39m Nuxt Nitro server built in 958ms
+[36mi[39m Vite client warmed up in 1ms
+[36mi[39m nuxt.config.ts updated. Restarting Nuxt...
+[32m√[39m Vite client built in 54ms
+[32m√[39m Vite server built in 1030ms
+[90m[[90mnitro[90m][39m [32m√[39m Nuxt Nitro server built in 857ms
+[36mi[39m Vite client warmed up in 1ms
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x2)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x3)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/proyek/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m
+[36mi[39m [32mhmr update [39m[2m/pages/proyek/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x2)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/proyek/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x3)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/proyek/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x4)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/nilai/tambah.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m
+[36mi[39m [32mpage reload [39m[2mplugins/pb-auth.client.ts[22m
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x2)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x3)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x4)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/index.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x5)[22m
+[36mi[39m [32mhmr update [39m[2m/pages/iduka.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m
+[36mi[39m [32mhmr update [39m[2m/pages/iduka.vue?macro=true, /@id/virtual:nuxt:.nuxt%2Froutes.mjs[22m[2m (x2)[22m

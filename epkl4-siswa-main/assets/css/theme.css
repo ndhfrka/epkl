@@ -1,0 +1,914 @@
+/* ============================================================
+   e-PKL — Modern Black-Blue Dark Theme
+   ============================================================ */
+/* Font di-host lokal (folder assets/fonts) agar tidak ada request ke internet
+   yang bisa ERR_TIMED_OUT saat jaringan lambat */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('../fonts/PlusJakartaSans-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('../fonts/Quicksand-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Lexend Mega';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/LexendMega-latin.woff2') format('woff2');
+}
+
+/* ============================================================
+   OVERRIDE FONT GOOGLE MAPS (hindari download dari fonts.gstatic.com)
+   Google Maps embed secara default memuat: Roboto, Google Sans, Google Sans Text.
+   Karena server fonts.gstatic.com sering ERR_TIMED_OUT di Indonesia,
+   kita override agar Google Maps pakai font lokal yang sudah ada.
+   ============================================================ */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: local('Plus Jakarta Sans'), local('Quicksand'), local('Segoe UI'), local('system-ui');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-weight: 300 700;
+  font-display: swap;
+  src: local('Plus Jakarta Sans'), local('Quicksand'), local('Segoe UI'), local('system-ui');
+}
+@font-face {
+  font-family: 'Google Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Plus Jakarta Sans'), local('Quicksand'), local('Segoe UI'), local('system-ui');
+}
+@font-face {
+  font-family: 'Google Sans Text';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Plus Jakarta Sans'), local('Quicksand'), local('Segoe UI'), local('system-ui');
+}
+
+/* ============================================================
+   FALLBACK FONT UNTUK 'Romana BT' & 'Metropolis'
+   Kedua font ini dipakai di layout default/login.vue tapi tidak
+   ada @font-face-nya. Berikan fallback ke font lokal agar browser
+   tidak melakukan percobaan request ke font-host tak dikenal.
+   ============================================================ */
+@font-face {
+  font-family: 'Romana BT';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Plus Jakarta Sans'), local('Quicksand'), local('Segoe UI'), local('serif');
+}
+@font-face {
+  font-family: 'Metropolis';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: local('Plus Jakarta Sans'), local('Quicksand'), local('Segoe UI'), local('sans-serif');
+}
+
+/* ============================================================
+   M3 COLOR TOKENS (Dark Scheme — disesuaikan biru 3b82f6)
+   ============================================================ */
+:root {
+  /* Primary */
+  --md-sys-color-primary: #60a5fa;
+  --md-sys-color-on-primary: #001f36;
+  --md-sys-color-primary-container: #004a77;
+  --md-sys-color-on-primary-container: #d4e3ff;
+
+  /* Secondary */
+  --md-sys-color-secondary: #bbc7db;
+  --md-sys-color-on-secondary: #253140;
+  --md-sys-color-secondary-container: #3b4758;
+  --md-sys-color-on-secondary-container: #d9e3f7;
+
+  /* Tertiary */
+  --md-sys-color-tertiary: #d4baff;
+  --md-sys-color-on-tertiary: #351764;
+  --md-sys-color-tertiary-container: #4c2f7d;
+  --md-sys-color-on-tertiary-container: #ecdcff;
+
+  /* Error */
+  --md-sys-color-error: #f87171;
+  --md-sys-color-on-error: #410002;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffdad6;
+
+  /* Surface family */
+  --md-sys-color-surface: #05080f;
+  --md-sys-color-surface-dim: #03060c;
+  --md-sys-color-surface-bright: #1b2238;
+  --md-sys-color-surface-container-lowest: #020409;
+  --md-sys-color-surface-container-low: #0a1120;
+  --md-sys-color-surface-container: #0d1424;
+  --md-sys-color-surface-container-high: #18213a;
+  --md-sys-color-surface-container-highest: #232d4a;
+
+  /* On surface */
+  --md-sys-color-on-surface: #e2e8f0;
+  --md-sys-color-on-surface-variant: #c3c7d2;
+
+  /* Outline */
+  --md-sys-color-outline: #8d9199;
+  --md-sys-color-outline-variant: #43474e;
+
+  /* Success / Warning (custom) */
+  --md-sys-color-success: #22c55e;
+  --md-sys-color-on-success: #052e16;
+  --md-sys-color-warning: #facc15;
+  --md-sys-color-on-warning: #422006;
+  --md-sys-color-info: #38bdf8;
+  --md-sys-color-on-info: #082f49;
+
+  /* Legacy ePKL mapping (tetap kompatibel) */
+  --epkl-bg: var(--md-sys-color-surface);
+  --epkl-surface: var(--md-sys-color-surface-container);
+  --epkl-surface-2: var(--md-sys-color-surface-container-high);
+  --epkl-border: var(--md-sys-color-outline-variant);
+  --epkl-border-strong: var(--md-sys-color-outline);
+  --epkl-accent: var(--md-sys-color-primary);
+  --epkl-accent-soft: #60a5fa;
+  --epkl-text: var(--md-sys-color-on-surface);
+  --epkl-muted: var(--md-sys-color-on-surface-variant);
+}
+
+/* ============================================================
+   M3 SHAPE CORNERS
+   ============================================================ */
+:root {
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+}
+
+/* ============================================================
+   M3 TYPE SCALE (Plus Jakarta Sans)
+   ============================================================ */
+:root {
+  /* Display */
+  --md-sys-typescale-display-small-font: 400 36px/44px 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  /* Headline */
+  --md-sys-typescale-headline-large-font: 400 32px/40px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-headline-medium-font: 400 28px/36px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-headline-small-font: 400 24px/32px 'Plus Jakarta Sans', sans-serif;
+  /* Title */
+  --md-sys-typescale-title-large-font: 500 22px/28px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-title-medium-font: 500 16px/24px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-title-small-font: 500 14px/20px 'Plus Jakarta Sans', sans-serif;
+  /* Body */
+  --md-sys-typescale-body-large-font: 400 16px/24px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-body-medium-font: 400 14px/20px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-body-small-font: 400 12px/16px 'Plus Jakarta Sans', sans-serif;
+  /* Label */
+  --md-sys-typescale-label-large-font: 500 14px/20px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-label-medium-font: 500 12px/16px 'Plus Jakarta Sans', sans-serif;
+  --md-sys-typescale-label-small-font: 500 11px/16px 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Type scale utility classes */
+.m3-display-small { font: var(--md-sys-typescale-display-small-font); letter-spacing: -0.25px; }
+.m3-headline-large { font: var(--md-sys-typescale-headline-large-font); }
+.m3-headline-medium { font: var(--md-sys-typescale-headline-medium-font); }
+.m3-headline-small { font: var(--md-sys-typescale-headline-small-font); }
+.m3-title-large { font: var(--md-sys-typescale-title-large-font); }
+.m3-title-medium { font: var(--md-sys-typescale-title-medium-font); }
+.m3-title-small { font: var(--md-sys-typescale-title-small-font); }
+.m3-body-large { font: var(--md-sys-typescale-body-large-font); }
+.m3-body-medium { font: var(--md-sys-typescale-body-medium-font); }
+.m3-body-small { font: var(--md-sys-typescale-body-small-font); }
+.m3-label-large { font: var(--md-sys-typescale-label-large-font); letter-spacing: 0.1px; }
+.m3-label-medium { font: var(--md-sys-typescale-label-medium-font); letter-spacing: 0.5px; }
+.m3-label-small { font: var(--md-sys-typescale-label-small-font); letter-spacing: 0.5px; }
+
+/* ============================================================
+   M3 ELEVATION (Shadow + surface tint)
+   Level 0 → 5
+   ============================================================ */
+:root {
+  --m3-elevation-level-0: none;
+  --m3-elevation-level-1:
+    0 1px 2px rgba(0, 0, 0, 0.30),
+    0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --m3-elevation-level-2:
+    0 1px 2px rgba(0, 0, 0, 0.30),
+    0 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --m3-elevation-level-3:
+    0 4px 8px 3px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.30);
+  --m3-elevation-level-4:
+    0 6px 10px 4px rgba(0, 0, 0, 0.15),
+    0 2px 3px rgba(0, 0, 0, 0.30);
+  --m3-elevation-level-5:
+    0 8px 12px 6px rgba(0, 0, 0, 0.15),
+    0 4px 4px rgba(0, 0, 0, 0.30);
+}
+
+.m3-elev-0 { box-shadow: var(--m3-elevation-level-0); }
+.m3-elev-1 { box-shadow: var(--m3-elevation-level-1); }
+.m3-elev-2 { box-shadow: var(--m3-elevation-level-2); }
+.m3-elev-3 { box-shadow: var(--m3-elevation-level-3); }
+.m3-elev-4 { box-shadow: var(--m3-elevation-level-4); }
+.m3-elev-5 { box-shadow: var(--m3-elevation-level-5); }
+
+/* ============================================================
+   M3 STATE LAYER & RIPPLE
+   ============================================================ */
+.m3-state {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.m3-state::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.m3-state:hover::before { opacity: 0.08; }
+.m3-state:focus-visible::before { opacity: 0.12; }
+.m3-state:active::before { opacity: 0.10; }
+
+/* Surface container utilities */
+.m3-surface { background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); }
+.m3-surface-container { background-color: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface); }
+.m3-surface-container-low { background-color: var(--md-sys-color-surface-container-low); color: var(--md-sys-color-on-surface); }
+.m3-surface-container-high { background-color: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface); }
+.m3-surface-container-highest { background-color: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-on-surface); }
+
+/* ============================================================
+   M3 SAFE AREA (iOS / Android notch)
+   ============================================================ */
+:root {
+  --m3-safe-top: env(safe-area-inset-top, 0px);
+  --m3-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --m3-safe-left: env(safe-area-inset-left, 0px);
+  --m3-safe-right: env(safe-area-inset-right, 0px);
+  /* Spacing content M3: 16dp pada body, 24dp pada large screen */
+  --m3-content-padding-x: 16px;
+}
+.m3-safe-top { padding-top: var(--m3-safe-top); }
+.m3-safe-bottom { padding-bottom: var(--m3-safe-bottom); }
+.m3-safe-x { padding-left: var(--m3-safe-left); padding-right: var(--m3-safe-right); }
+.m3-padding-content {
+  padding-left: calc(var(--m3-content-padding-x) + var(--m3-safe-left));
+  padding-right: calc(var(--m3-content-padding-x) + var(--m3-safe-right));
+}
+
+/* ============================================================
+   M3 OVERRIDE BOOTSTRAP (Global — Desktop & Mobile)
+   ============================================================ */
+
+/* ---------- Base ---------- */
+html,
+body {
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--md-sys-color-on-surface);
+  background-color: var(--md-sys-color-surface);
+  background-image:
+    radial-gradient(55rem 30rem at 85% -10%, rgba(59, 130, 246, 0.12), transparent 60%),
+    radial-gradient(45rem 28rem at -15% 30%, rgba(37, 99, 235, 0.09), transparent 60%),
+    radial-gradient(40rem 24rem at 50% 110%, rgba(14, 116, 144, 0.10), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(96, 165, 250, 0.35);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--md-sys-color-surface-container-lowest);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 2px solid var(--md-sys-color-surface-container-lowest);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-sys-color-primary);
+}
+
+/* ---------- Cards (M3: shape medium, elev 1, surface-container) ---------- */
+.card {
+  border-radius: var(--md-sys-shape-corner-medium) !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  background-color: var(--md-sys-color-surface-container) !important;
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--m3-elevation-level-1) !important;
+}
+.card .card-header {
+  background-color: transparent;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant) !important;
+  border-radius: var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0 0 !important;
+  color: var(--md-sys-color-on-surface);
+  padding: 16px 20px;
+  font: var(--md-sys-typescale-title-large-font);
+}
+.card .card-body {
+  padding: 20px;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* ---------- Buttons (M3: filled = primary container, outlined = outline border) ---------- */
+.btn {
+  font: var(--md-sys-typescale-label-large-font);
+  letter-spacing: 0.1px;
+  border-radius: var(--md-sys-shape-corner-full) !important;
+  padding: 10px 24px !important;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent !important;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  box-shadow: none !important;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.btn > * { position: relative; z-index: 1; }
+.btn:hover::before { opacity: 0.08; }
+.btn:focus-visible::before { opacity: 0.12; }
+.btn:active::before { opacity: 0.10; transform: scale(1.02); }
+
+.btn:disabled {
+  opacity: 0.38;
+  box-shadow: none !important;
+  filter: none;
+}
+.btn:disabled::before { opacity: 0; }
+
+/* Filled button (M3) — primary */
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus {
+  background-color: var(--md-sys-color-primary) !important;
+  color: var(--md-sys-color-on-primary) !important;
+}
+
+/* Success / Danger / Warning / Info / Secondary */
+.btn-success, .btn-success:hover { background-color: var(--md-sys-color-success) !important; color: var(--md-sys-color-on-success) !important; }
+.btn-danger,  .btn-danger:hover  { background-color: var(--md-sys-color-error)   !important; color: var(--md-sys-color-on-error)   !important; }
+.btn-warning, .btn-warning:hover { background-color: var(--md-sys-color-warning) !important; color: var(--md-sys-color-on-warning) !important; }
+.btn-info,    .btn-info:hover    { background-color: var(--md-sys-color-info)    !important; color: var(--md-sys-color-on-info)    !important; }
+
+/* Outlined button (M3) — .btn-outline-* */
+.btn-outline-primary,
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  background-color: transparent !important;
+  color: var(--md-sys-color-primary) !important;
+  border: 1px solid var(--md-sys-color-outline) !important;
+}
+.btn-outline-primary:hover { background-color: transparent !important; }
+
+.btn-outline-secondary,
+.btn-outline-secondary:hover {
+  background-color: transparent !important;
+  color: var(--md-sys-color-secondary) !important;
+  border: 1px solid var(--md-sys-color-outline) !important;
+}
+
+/* Tonal button M3 — .btn-dark, .btn-light fallback → secondary-container */
+.btn-dark,
+.btn-dark:hover,
+.btn-light,
+.btn-light:hover {
+  background-color: var(--md-sys-color-secondary-container) !important;
+  color: var(--md-sys-color-on-secondary-container) !important;
+  border: 1px solid transparent !important;
+}
+
+/* Button SMALL / LG sizing M3 */
+.btn-sm, .btn-group-sm > .btn {
+  padding: 6px 16px !important;
+  min-height: 32px;
+  font: var(--md-sys-typescale-label-medium-font);
+  letter-spacing: 0.5px;
+}
+.btn-lg, .btn-group-lg > .btn {
+  padding: 14px 32px !important;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+/* Icon-only buttons (circle, M3 Icon Button style) */
+.btn-icon {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  padding: 0 !important;
+  border-radius: var(--md-sys-shape-corner-full) !important;
+  font-size: 20px;
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  border: none !important;
+  box-shadow: none !important;
+}
+.btn-icon:hover { color: var(--md-sys-color-on-surface); }
+
+/* ---------- Forms (M3 Outlined Text Fields) ---------- */
+.form-control,
+.form-select,
+.form {
+  font: var(--md-sys-typescale-body-large-font);
+  min-height: 56px;
+  padding: 16px 14px !important;
+  border-radius: var(--md-sys-shape-corner-small) var(--md-sys-shape-corner-small) var(--md-sys-shape-corner-small) var(--md-sys-shape-corner-small) !important;
+  background-color: transparent !important;
+  color: var(--md-sys-color-on-surface) !important;
+  border: 1px solid var(--md-sys-color-outline) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: none !important;
+  position: relative;
+  z-index: 1;
+}
+
+textarea.form-control,
+textarea.form {
+  min-height: 120px;
+  line-height: 1.55;
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+.form-control::placeholder,
+.form::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.75;
+}
+
+.form-control:focus,
+.form:focus,
+.form-select:focus {
+  border-color: var(--md-sys-color-primary) !important;
+  border-width: 2px !important;
+  padding: 15px 13px !important; /* compensate 2px border */
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+textarea.form-control:focus,
+textarea.form:focus {
+  padding-top: 17px !important;
+  padding-bottom: 17px !important;
+}
+
+.form-select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--md-sys-color-on-surface-variant) 50%),
+    linear-gradient(135deg, var(--md-sys-color-on-surface-variant) 50%, transparent 50%);
+  background-position:
+    calc(100% - 22px) calc(50% - 3px),
+    calc(100% - 17px) calc(50% - 3px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 42px !important;
+}
+.form-select option {
+  background-color: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+
+label {
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium-font);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  margin-bottom: 8px;
+}
+
+input[type="checkbox"],
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--md-sys-color-primary);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  border: 2px solid var(--md-sys-color-outline) !important;
+  background-color: transparent;
+  transition: all 0.15s ease;
+}
+input[type="checkbox"]:checked,
+.form-check-input:checked {
+  border-color: var(--md-sys-color-primary) !important;
+  background-color: var(--md-sys-color-primary) !important;
+  color: var(--md-sys-color-on-primary) !important;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+}
+
+.form-switch .form-check-input {
+  border-radius: var(--md-sys-shape-corner-full);
+  width: 52px;
+  height: 32px;
+  border-color: var(--md-sys-color-outline) !important;
+  background-color: var(--md-sys-color-surface-container-highest);
+}
+.form-switch .form-check-input:checked {
+  background-color: var(--md-sys-color-primary) !important;
+  border-color: var(--md-sys-color-primary) !important;
+}
+
+/* ---------- Tables ---------- */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--md-sys-color-on-surface);
+  --bs-table-border-color: var(--md-sys-color-outline-variant);
+  --bs-table-striped-bg: var(--md-sys-color-surface-container-low);
+  --bs-table-hover-bg: rgba(96, 165, 250, 0.08);
+  font: var(--md-sys-typescale-body-medium-font);
+}
+table th {
+  background-color: var(--md-sys-color-surface-container-high) !important;
+  color: var(--md-sys-color-primary) !important;
+  font: var(--md-sys-typescale-title-small-font);
+  border-bottom: 1px solid var(--md-sys-color-outline) !important;
+  padding: 14px 16px !important;
+}
+.table-responsive {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 600px;
+}
+.table-responsive th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ---------- Text & Links ---------- */
+.text-dark { color: var(--md-sys-color-on-surface) !important; }
+.text-grey, .text-muted { color: var(--md-sys-color-on-surface-variant) !important; }
+.text-danger { color: var(--md-sys-color-error) !important; }
+.text-info { color: var(--md-sys-color-info) !important; }
+.text-warning { color: var(--md-sys-color-warning) !important; }
+.text-success { color: var(--md-sys-color-success) !important; }
+.text-primary { color: var(--md-sys-color-primary) !important; }
+
+a.link {
+  text-decoration: none;
+  color: var(--md-sys-color-primary);
+  border-bottom: 1px dashed var(--md-sys-color-outline);
+  transition: all 0.2s ease-in-out;
+  padding-bottom: 0.05em;
+}
+a.link:hover {
+  border-bottom: 1px solid var(--md-sys-color-primary);
+}
+
+/* ---------- Borders & BG utilities ---------- */
+.border-dark, .border-grey { border-color: var(--md-sys-color-outline-variant) !important; }
+.bg-white, .bg-body-tertiary { background-color: var(--md-sys-color-surface-container) !important; }
+.bg-light { background-color: var(--md-sys-color-surface-container-high) !important; }
+.bg-grey { background-color: var(--md-sys-color-surface-container-low); }
+
+/* ---------- Alerts, Badges, Accordion, Modal ---------- */
+.alert {
+  border-radius: var(--md-sys-shape-corner-medium) !important;
+  border-width: 1px !important;
+  padding: 16px 20px;
+  font: var(--md-sys-typescale-body-medium-font);
+  box-shadow: var(--m3-elevation-level-1);
+}
+.alert-success, .bg-success {
+  background-color: var(--md-sys-color-success) !important;
+  color: var(--md-sys-color-on-success) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+.alert-danger, .bg-danger {
+  background-color: var(--md-sys-color-error-container) !important;
+  color: var(--md-sys-color-on-error-container) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+.alert-warning, .bg-warning {
+  background-color: rgba(250, 204, 21, 0.2) !important;
+  color: var(--md-sys-color-warning) !important;
+  border-color: rgba(250, 204, 21, 0.3) !important;
+}
+.alert-info, .bg-info {
+  background-color: rgba(56, 189, 248, 0.18) !important;
+  color: var(--md-sys-color-info) !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+.alert-dark, .alert-light {
+  background-color: var(--md-sys-color-surface-container-high) !important;
+  color: var(--md-sys-color-on-surface) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
+}
+.bg-purple, .btn-purple {
+  background-color: var(--md-sys-color-tertiary-container) !important;
+  color: var(--md-sys-color-on-tertiary-container) !important;
+}
+
+.badge {
+  font: var(--md-sys-typescale-label-small-font);
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: var(--md-sys-shape-corner-small);
+}
+.badge.bg-danger {
+  background-color: var(--md-sys-color-error) !important;
+  color: var(--md-sys-color-on-error) !important;
+}
+.badge.bg-success {
+  background-color: var(--md-sys-color-success) !important;
+  color: var(--md-sys-color-on-success) !important;
+}
+.badge.bg-dark {
+  background-color: var(--md-sys-color-surface-container-highest) !important;
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+.accordion-item {
+  background-color: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.accordion-button {
+  background-color: transparent !important;
+  color: var(--md-sys-color-on-surface) !important;
+  font: var(--md-sys-typescale-title-medium-font);
+  box-shadow: none !important;
+}
+.accordion-button::after { filter: invert(0.8); }
+.accordion-button:not(.collapsed) {
+  background-color: var(--md-sys-color-surface-container-high) !important;
+  box-shadow: none;
+}
+
+.modal-content {
+  border-radius: var(--md-sys-shape-corner-extra-large) !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  background-color: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--m3-elevation-level-3);
+  overflow: hidden;
+}
+.modal-header, .modal-footer {
+  border-color: var(--md-sys-color-outline-variant) !important;
+  padding: 20px 24px;
+}
+.modal-header .modal-title {
+  font: var(--md-sys-typescale-headline-small-font);
+}
+.modal-body { padding: 20px 24px; }
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background-color: transparent;
+  opacity: 0.7;
+  filter: invert(1) grayscale(0.5);
+}
+.btn-close:hover { opacity: 1; background-color: rgba(255,255,255,0.08); }
+
+.list-group-item {
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface);
+  border-color: var(--md-sys-color-outline-variant);
+  padding: 14px 16px;
+  font: var(--md-sys-typescale-body-large-font);
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+.list-group-item:hover {
+  background-color: rgba(96, 165, 250, 0.06);
+}
+.list-group-item.active {
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-color: var(--md-sys-color-primary-container);
+}
+
+/* Navbar */
+.navbar {
+  --bs-navbar-color: var(--md-sys-color-on-surface);
+  background-color: transparent !important;
+}
+.navbar .nav-link {
+  color: var(--md-sys-color-on-surface-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  padding: 8px 16px;
+  font: var(--md-sys-typescale-label-large-font);
+}
+.navbar .nav-link:hover {
+  background-color: rgba(96, 165, 250, 0.08);
+  color: var(--md-sys-color-on-surface);
+}
+.navbar .nav-link.active {
+  color: var(--md-sys-color-on-primary-container);
+  background-color: var(--md-sys-color-secondary-container);
+}
+
+.navbar-toggler {
+  width: 40px;
+  height: 40px;
+  border: none !important;
+  border-radius: var(--md-sys-shape-corner-full) !important;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--md-sys-color-on-surface-variant);
+  box-shadow: none !important;
+}
+.navbar-toggler:hover {
+  background-color: rgba(255,255,255,0.08);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Label berkas custom upload */
+.label-berkas {
+  width: 100%;
+  border: 1px dashed var(--md-sys-color-outline) !important;
+  border-radius: var(--md-sys-shape-corner-medium) !important;
+  padding: 16px;
+  display: block;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+  font: var(--md-sys-typescale-label-large-font);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.label-berkas:hover {
+  border-color: var(--md-sys-color-primary) !important;
+  color: var(--md-sys-color-primary);
+  background-color: rgba(96, 165, 250, 0.05);
+}
+.form-control-file { display: none; }
+
+.hand-cursor { cursor: pointer; }
+
+/* Override legacy ePKL classes to M3-friendly */
+.smallest {
+  font: var(--md-sys-typescale-label-small-font);
+  letter-spacing: 0.5px;
+}
+.small {
+  font: var(--md-sys-typescale-body-small-font);
+}
+
+/* ============================================================
+   M3 MOBILE VIEW (<= 991.98px)
+   ============================================================ */
+@media (max-width: 991.98px) {
+  :root {
+    /* Layout mobile heights */
+    --m3-top-app-bar-height: 64px;
+    --m3-nav-bar-height: 80px;
+    --m3-content-padding-x: 16px;
+  }
+
+  html, body { font-size: 15px; }
+
+  /* Body: berikan ruang untuk Top App Bar + Bottom Nav + safe area */
+  body {
+    padding-top: calc(var(--m3-top-app-bar-height) + var(--m3-safe-top));
+    padding-bottom: calc(var(--m3-nav-bar-height) + var(--m3-safe-bottom));
+  }
+
+  .container-fluid {
+    padding-left: calc(var(--m3-content-padding-x) + var(--m3-safe-left)) !important;
+    padding-right: calc(var(--m3-content-padding-x) + var(--m3-safe-right)) !important;
+  }
+
+  /* Hindari overflow horizontal di mobile */
+  html, body {
+    overflow-x: hidden;
+  }
+  .row {
+    --bs-gutter-x: 0.75rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Cards mobile: padding lebih nyaman & jarak antar card jelas */
+  .card {
+    border-radius: var(--md-sys-shape-corner-large) !important;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card .card-header {
+    padding: 16px 18px 14px;
+    font: var(--md-sys-typescale-title-medium-font);
+  }
+  .card .card-body {
+    padding: 18px;
+  }
+  /* Khusus card di dalam col bootstrap: jangan 0 padding col, biar jarak antar card ada */
+  .row { margin-bottom: 0 !important; }
+  .row > [class*="col-"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-bottom: 4px;
+  }
+  .row > [class*="col-"]:first-child { padding-left: 0; }
+  .row > [class*="col-"]:last-child  { padding-right: 0; }
+  .row > [class*="col-"]:only-child { padding-left: 0; padding-right: 0; }
+
+  /* Buttons full-width di mobile untuk aksi utama (opsional, via .btn-block class).
+     Biarkan default inline-flex, tapi tambah helper .m3-btn-block. */
+  .m3-btn-block {
+    width: 100%;
+  }
+
+  /* Margin mb-6 (lama: 5.5em) → disesuaikan dengan Nav Bar M3 80px + safe area */
+  .mb-6 { margin-bottom: 24px !important; }
+
+  /* Form controls mobile lebih compact (tetap 56px tapi padding menyesuaikan) */
+  .form-control, .form, .form-select {
+    min-height: 52px;
+    padding: 14px 14px !important;
+  }
+  .form-control:focus, .form:focus, .form-select:focus {
+    padding: 13px 13px !important;
+  }
+
+  /* Tables: tetap di dalam container parent (tidak breakout), scrolly normal */
+  .table-responsive {
+    max-height: 70vh;
+    width: 100%;
+    border-radius: var(--md-sys-shape-corner-medium);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .table-responsive table { margin-bottom: 0; }
+
+  /* Modal mobile: full width, lebih kecil radius */
+  .modal-dialog {
+    margin: calc(var(--m3-safe-top) + 16px) 12px 12px;
+    max-width: 100% !important;
+  }
+  .modal-content {
+    border-radius: var(--md-sys-shape-corner-large) !important;
+  }
+
+  /* Sidebar + top nav lama (tapi display:none). Hanya pastikan tidak menambah ruang. */
+  .side-nav { display: none; }
+
+  /* Alert gap */
+  .alert + .alert { margin-top: 0.5rem; }
+}
+
+/* Extra small: <= 420px layar sangat kecil */
+@media (max-width: 420px) {
+  :root { --m3-content-padding-x: 12px; }
+  .card { border-radius: var(--md-sys-shape-corner-medium) !important; }
+  .card .card-header { padding: 14px 15px 12px; font: var(--md-sys-typescale-title-small-font); }
+  .card .card-body { padding: 15px; }
+  .btn { padding: 9px 18px !important; }
+  .btn-sm { padding: 5px 12px !important; }
+  .row { --bs-gutter-x: 0.5rem; }
+  .row > [class*="col-"] {
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+  }
+}
+

@@ -1,0 +1,22 @@
+{
+  "applied": {
+    "pemetaan": {
+      "listRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || (@request.auth.role = 'instansi' && iduka = @request.auth.iduka) || siswa = @request.auth.siswa)",
+      "viewRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || (@request.auth.role = 'instansi' && iduka = @request.auth.iduka) || siswa = @request.auth.siswa)"
+    },
+    "jurnal": {
+      "listRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || siswa = @request.auth.id || (@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= siswa.siswa))",
+      "viewRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || siswa = @request.auth.id || (@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= siswa.siswa))"
+    },
+    "absen": {
+      "listRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || user = @request.auth.id || (@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= user.siswa))",
+      "viewRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || user = @request.auth.id || (@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= user.siswa))"
+    },
+    "nilai": {
+      "listRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || siswa = @request.auth.siswa || (@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= siswa))",
+      "viewRule": "(@request.auth.role = 'guru' || @request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu' || @request.auth.role = 'wakasek' || siswa = @request.auth.siswa || (@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= siswa))",
+      "createRule": "(@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= siswa)",
+      "updateRule": "(@request.auth.role = 'instansi' && @collection.pemetaan.iduka ?= @request.auth.iduka && @collection.pemetaan.siswa ?= siswa)"
+    }
+  }
+}

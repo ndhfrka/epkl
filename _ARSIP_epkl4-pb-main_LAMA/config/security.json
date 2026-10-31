@@ -1,0 +1,5 @@
+{
+  "secureCookies": true,
+  "sameSite": "Strict",
+  "trustedProxy": ["127.0.0.1"]
+}

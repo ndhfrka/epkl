@@ -1,0 +1,13 @@
+const { DatabaseSync } = require('node:sqlite');
+const db = new DatabaseSync('C:/Users/ASUS/Downloads/jurnal pkl/pocketbase/pb_data/data.db', { readOnly: true });
+const row = db.prepare("select fields from _collections where name = 'nilai'").get();
+const f = JSON.parse(row.fields).find(x => x.name === 'siswa');
+console.log('nilai.siswa field JSON:', JSON.stringify(f));
+const map = {};
+db.prepare('select id, name, type from _collections').all().forEach(r => map[r.id] = r.name);
+const tId = f?.options?.collectionId || f?.collectionId;
+console.log('target:', tId ? (map[tId] || tId) : '?');
+console.log('sample siswa(base) ids:', db.prepare('select id from siswa limit 2').all().map(r => r.id).join(', '));
+console.log('sample student_users ids:', db.prepare('select id from student_users limit 2').all().map(r => r.id).join(', '));
+const ex = db.prepare('select id, siswa from nilai limit 2').all();
+console.log('existing nilai rows (id, siswa):', JSON.stringify(ex));

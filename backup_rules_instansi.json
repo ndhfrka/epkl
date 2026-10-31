@@ -1,0 +1,26 @@
+{
+  "pemetaan": {
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "@request.auth.role = 'admin' || @request.auth.role = 'jurusan' || @request.auth.role = 'tu'"
+  },
+  "jurnal": {
+    "listRule": "siswa = @request.auth.id || @request.auth.role = 'guru' || @request.auth.role = 'instansi'",
+    "viewRule": "siswa = @request.auth.id || @request.auth.role = 'guru' || @request.auth.role = 'instansi'",
+    "createRule": "siswa = @request.auth.id",
+    "updateRule": "siswa = @request.auth.id"
+  },
+  "absen": {
+    "listRule": "user = @request.auth.id || @request.auth.role = 'guru' || @request.auth.role = 'instansi'",
+    "viewRule": "user = @request.auth.id || @request.auth.role = 'guru' || @request.auth.role = 'instansi'",
+    "createRule": "user = @request.auth.id",
+    "updateRule": "user = @request.auth.id"
+  },
+  "nilai": {
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.role = 'instansi'",
+    "updateRule": "@request.auth.role = 'instansi'"
+  }
+}

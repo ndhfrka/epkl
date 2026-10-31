@@ -1,0 +1,75 @@
+=== HOME (clasnet) full ===
+clasnet
+Overview — e-PKL / SMK AL-FATAH BANJARNEGARA.
+M Nadhif Raka Saputra
+Kelas
+XII RPL 3
+Tempat PKL
+Clasnet
+Banjarnegara
+Guru Pembimbing 
+Administrator
+PIC IDUKA 
+Belum pemetaan
+ Temen Satu Tim
+Belum ada temen / kamu PKL sendirian
+ Rekapan Bulanan
+Belum ada rekapan. Rekap bulan yang sudah selesai muncul otomatis setelah ada data absen di halaman Absen PKL.
+3
+Jurnal Harian
+3
+Jurnal belum di validasi
+😭 0%
+Aktivitasmu Kurang Sesuai
+v3.0
+Privacy | Terms
+©2018 - 2026 e-PKL.
+=== JURNAL (clasnet) full ===
+clasnet
+Jurnal — e-PKL / SMK AL-FATAH BANJARNEGARA.
+ Jurnal
+ Agenda
+ List
+Semua Bulan
+Januari
+Februari
+Maret
+April
+Mei
+Juni
+Juli
+Agustus
+September
+Oktober
+November
+Desember
+2024
+2025
+2026
+2027
+AGENDA HARIAN PRAKTEK KERJA LAPANGAN (PKL)
+SMK AL FATAH BANJARNEGARA
+TAHUN PELAJARAN 2026/2027
+Nama Siswa
+:
+Muhammad Nadhif Raka Saputra
+NIS
+:
+24302858
+Tempat PKL / Instansi
+:
+clasnet
+Alamat
+:
+kaliwiro wonosobo
+No.	Hari/Tanggal	Uraian kegiatan yang dilakukan	Tanda tangan Instansi
+1	Kamis, 10/9/2026	pembuatan aplikasi jurnal pkl 	
+unggah ttd
+2	Jumat, 11/9/2026	melanjutkan pembuatan aplikasi jurnal pkl 	
+unggah ttd
+3	Sabtu, 12/9/2026	penambahan fitur pada aplikasi jurnal pkl 	
+unggah ttd
+v3.0
+Privacy | Terms
+©2018 - 2026 e-PKL.
+pageerror count: 0

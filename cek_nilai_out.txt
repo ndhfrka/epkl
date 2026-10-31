@@ -1,0 +1,32 @@
+id=r0d15lq7e7cnru4 name=nilai
+- id (text) required
+- nilai_elemen1 (number)
+- nilai_elemen2 (number)
+- nilai_elemen3 (number)
+- nilai_elemen4 (number)
+- foto_jurnal_nilai (file)
+- iduka (relation)
+- siswa (relation)
+- program_keahlian (relation)
+- pj_penandatangan (text)
+- logo (file)
+- isEntrust (bool)
+- isValid (bool)
+- nama_pj_penandatangan (text)
+- nomor_sertifikat (text)
+- nomor_pegawai (text)
+- sakit (number)
+- izin (number)
+- tanpa_keterangan (number)
+- deskripsi_elemen1 (json)
+- deskripsi_elemen2 (json)
+- deskripsi_elemen3 (json)
+- deskripsi_elemen4 (json)
+- pembimbing (relation)
+- created (autodate)
+- updated (autodate)
+createRule="@request.auth.id != ''"
+updateRule="@request.auth.role = 'admin' || @request.auth.role = 'guru' || @request.auth.role = 'jurusan' || @request.auth.id != ''"
+listRule="@request.auth.id != ''"
+total=1
+{"collectionId":"r0d15lq7e7cnru4","collectionName":"nilai","created":"2026-09-12 03:43:07.612Z","deskripsi_elemen1":null,"deskripsi_elemen2":null,"deskripsi_elemen3":null,"deskripsi_elemen4":null,"foto_jurnal_nilai":"","id":"fh5rvu5jb9fal9q","iduka":"hbter3ym9blunv8","isEntrust":false,"isValid":fals

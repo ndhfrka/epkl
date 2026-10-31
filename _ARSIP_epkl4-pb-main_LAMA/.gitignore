@@ -1,0 +1,14 @@
+# Backup files
+pb_data/backups/
+
+# Compiled plugin files
+*.so
+
+# Docker artefacts (not used)
+Dockerfile
+.dockerignore
+
+# OS generated files
+.DS_Store
+Thumbs.db
+

@@ -1,0 +1,74 @@
+# Changelog
+
+### 3.0 (18 Agustus 2026)
+- Major version is here! 🥳
+- Improvement all features
+
+### 2.10-rc (14 Agustus 2026)
+- Memisahkan Guru Pembimbing dengan guru yang menjadi PIC Sekolah ke IDUKA
+- Pembuatan Jurnal harus sudah terpetakan baik PKL dan Guru Pembimbing
+- Penyerahan Proyek harus sudah terpetakan baik PKL dan Guru Pembimbing
+
+### 2.9.3 (28 Juli 2026)
+- Light login button
+
+### 2.9.2 (18 Juli 2026)
+- Revamp UI corner into squircle and dark button for primary.
+
+### 2.9.1 (17 Juli 2026)
+- Change cursor when hint an Edit Draft button
+
+### 2.9 (12 Juli 2026)
+- Change activity formula (prosentase kesesuaian)
+
+### 2.8.1 (29 Juni 2026)
+- Add new page: create journal
+- Improvement UI/UX
+
+### 2.8 (28 Maret 2026)
+- Craete new feature: Self Project
+- Move Elemen Nav to NavTop
+- Add Project Nav to NavBottom
+
+### 2.7 (27 Maret 2026)
+- New Journal image will convert to auto (.jpg/.png/.webp)
+- Increase compression ratio (maybe medium quality)
+- Filter journal by Elemen
+- Display percentage based on journal activity, realtime based on validate by teacher
+
+### 2.6.1 (24 Januari 2026)
+- Chagne pagination method with loadmore
+- Limit record 30 per page
+
+### 2.6 (22 Januari 2026)
+- Teacher can write comment to student's Journal
+- Showing indicator notification on bottom nav: comment and draft journal
+
+### 2.5 (8 Januari 2026)
+- Let's save your life with `save as draft` Journal
+
+### 2.5.0-rc4 (2 Januari 2026)
+- Create mood's page to see other moods update
+- Create link to page "kepoin mood orang laen"
+
+### 2.5.0-rc3 (1 Januari 2026)
+- Create bubble Mood, and show the emoji's name
+- Show Mood emoji to friends
+- Revamp a lil bit UI alert
+- Improve: UX Writing
+
+### 2.5.0-rc2 (31 Desember 2025)
+- Revamp a lil bit UI
+- Ganti ke bahasa slank
+
+### 2.5.0-rc1 (31 Desember 2025)
+- Minor update, release candidate
+- Create Mood User's feature
+
+### 2.4.6 (20 Desember 2025)
+- Improvement: Change unit size on watermark #731720c
+
+### 2.4 (15 Agustus 2025)
+- Menghapus fitur portfolio dan karya ilmiah
+- Rewrite from Python (Django) to Javascript (Vue)
+- Migrating to BaaS: [Pocketbase](https://pocketbase.io) ([Golang](https://go.dev) based)
