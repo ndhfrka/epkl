@@ -1,5 +1,8 @@
 # 📚 EPKL – Sistem Jurnal Praktik Kerja Lapangan
 
+**Penulis:** M. Nadhif Raka Saputra
+**Asal Sekolah:** SMK AL-FATAH Banjarnegara
+
 ## Deskripsi Singkat
 `epkl` adalah aplikasi **Jurnal PKL** (Praktek Kerja Lapangan) berbasis **React Native**/Flutter (untuk mobile) dan **Nuxt 3** (untuk web) yang memungkinkan guru, siswa, dan institusi memantau, mencatat, serta menilai kegiatan PKL secara real‑time.
 
