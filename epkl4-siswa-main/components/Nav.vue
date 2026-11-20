@@ -3,6 +3,10 @@
     <Header />
     <div class="card modern-side-card">
       <div class="card-body p-0">
+        <!-- [FITUR TEMA] Mode gelap/terang (desktop) -->
+        <div class="side-nav__tema">
+          <TombolTema />
+        </div>
         <!-- Lonceng pengingat absen & jurnal (muncul otomatis ≥ 16.00 jika belum diisi) -->
         <div class="side-nav__pengingat">
           <PengingatBell placement="right" />
@@ -234,5 +238,12 @@ let username = user.user.value?.username
   font-size: 11px !important;
   color: #60a5fa !important;
   letter-spacing: 1px !important;
+}
+
+/* [FITUR TEMA] Baris tombol mode gelap/terang di sisi navigasi desktop */
+.side-nav__tema {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px 0;
 }
 </style>

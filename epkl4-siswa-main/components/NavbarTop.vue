@@ -42,6 +42,10 @@
       <!-- Trailing actions (Cukup tombol notifikasi) -->
       <div class="m3-topappbar__actions" aria-label="Aksi">
         <slot name="actions">
+          <!-- [FITUR TEMA] Tombol mode gelap/terang — berdampingan dengan tombol notifikasi -->
+          <div class="topbar-action-item">
+            <TombolTema />
+          </div>
           <!-- Lonceng pengingat absen & jurnal -->
           <div class="topbar-action-item">
             <PengingatBell v-if="showNotifications" placement="bottom" />

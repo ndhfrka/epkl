@@ -941,3 +941,124 @@ select:autofill {
   box-shadow: 0 0 0 1000px #09101e inset !important;
 }
 
+/* ================================================================
+   [FITUR TEMA] MODE TERANG — html[data-tema='terang']
+   Diaktifkan oleh tombol mode gelap/terang (TombolTema.vue) via
+   composable useTema() — pilihan disimpan di localStorage 'epkl-tema'
+   dan diterapkan plugin tema.client.js sebelum render pertama.
+   Semua komponen yang memakai var(--md-sys-color-*) ikut berubah;
+   elemen dengan warna gelap yang di-hardcode ditimpa eksplisit di bawah.
+   ================================================================ */
+html[data-tema='terang'] {
+  --md-sys-color-primary: #1d4ed8;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #dce7ff;
+  --md-sys-color-on-primary-container: #0b2a6b;
+  --md-sys-color-secondary: #475692;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #e0e5f9;
+  --md-sys-color-on-secondary-container: #131c38;
+  --md-sys-color-tertiary: #6d28d9;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #ede4ff;
+  --md-sys-color-on-tertiary-container: #351764;
+  --md-sys-color-error: #dc2626;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+  --md-sys-color-success: #16a34a;
+  --md-sys-color-on-success: #ffffff;
+  --md-sys-color-warning: #d97706;
+  --md-sys-color-on-warning: #ffffff;
+  --md-sys-color-info: #0284c7;
+  --md-sys-color-on-info: #ffffff;
+  --md-sys-color-surface: #f4f6fb;
+  --md-sys-color-surface-dim: #dde1ea;
+  --md-sys-color-surface-bright: #ffffff;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f8f9fd;
+  --md-sys-color-surface-container: #f1f3f9;
+  --md-sys-color-surface-container-high: #e9edf5;
+  --md-sys-color-surface-container-highest: #dfe4ee;
+  --md-sys-color-on-surface: #1a2233;
+  --md-sys-color-on-surface-variant: #4b5568;
+  --md-sys-color-outline: #7a8290;
+  --md-sys-color-outline-variant: #d3d8e2;
+  /* variabel latar yang dipakai layout shell (fallback gelap di :root) */
+  --md-sys-color-background: #f4f6fb;
+  --md-sys-color-on-background: #1a2233;
+  --epkl-accent-soft: #2563eb;
+}
+
+/* --- Timpa permukaan gelap yang di-hardcode di komponen.
+       Prefiks html[data-tema='terang'] memberi spesifisitas lebih tinggi
+       (0,2,1) dibanding style scoped komponen (0,2,0), sehingga !important
+       di sini tetap menang. --- */
+
+/* Topbar mobile (NavbarTop) */
+html[data-tema='terang'] .m3-topappbar {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08) !important;
+}
+html[data-tema='terang'] .m3-topappbar--scrolled {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom-color: rgba(37, 99, 235, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12) !important;
+}
+html[data-tema='terang'] .m3-topappbar__title { color: #0f172a !important; }
+
+/* Tombol kaca di topbar (menu/avatar/tema/notifikasi) */
+html[data-tema='terang'] .glass-btn-leading {
+  background: rgba(15, 23, 42, 0.05);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #475569;
+}
+
+/* Kartu sisi navigasi desktop (Nav) */
+html[data-tema='terang'] .modern-side-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.12) !important;
+}
+
+/* Bottom navigation mobile (NavFixedBottom) */
+html[data-tema='terang'] .m3-navbar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-top-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Autofill isi-otomatis di mode terang: latar putih + teks gelap */
+html[data-tema='terang'] input:-webkit-autofill,
+html[data-tema='terang'] input:-webkit-autofill:hover,
+html[data-tema='terang'] input:-webkit-autofill:focus,
+html[data-tema='terang'] input:-webkit-autofill:active,
+html[data-tema='terang'] textarea:-webkit-autofill,
+html[data-tema='terang'] select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #1a2233 !important;
+  caret-color: #1a2233 !important;
+  color: #1a2233 !important;
+}
+html[data-tema='terang'] input:autofill,
+html[data-tema='terang'] textarea:autofill,
+html[data-tema='terang'] select:autofill {
+  background-color: #ffffff !important;
+  color: #1a2233 !important;
+  -webkit-text-fill-color: #1a2233 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+}
+
+/* Seleksi teks & gradien latar di mode terang */
+html[data-tema='terang'] ::selection {
+  background: rgba(37, 99, 235, 0.22);
+  color: #0f172a;
+}
+html[data-tema='terang'] body {
+  background-image:
+    radial-gradient(55rem 30rem at 85% -10%, rgba(59, 130, 246, 0.08), transparent 60%),
+    radial-gradient(45rem 28rem at -15% 30%, rgba(37, 99, 235, 0.06), transparent 60%),
+    radial-gradient(40rem 24rem at 50% 110%, rgba(14, 116, 144, 0.05), transparent 60%);
+}
+
