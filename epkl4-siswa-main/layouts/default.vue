@@ -8,8 +8,7 @@
   <!-- ===== Top App Bar M3 (display mobile-only via CSS min-width:992px → display none) ===== -->
   <NavbarTop
     @leading-click="drawerOpen = true"
-    @action-account="drawerOpen = true"
-    :show-account="true"
+    :show-account="false"
     :show-notifications="true"
     :mobile-only="true"
   />

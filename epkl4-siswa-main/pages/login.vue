@@ -234,6 +234,24 @@ async function handleLogin() {
   letter-spacing: 0.2px;
   height: 100%;
 }
+/* Override background putih otomatis bawaan browser Chrome/Safari/Edge saat autofill */
+.m3-text-field__input:-webkit-autofill,
+.m3-text-field__input:-webkit-autofill:hover, 
+.m3-text-field__input:-webkit-autofill:focus, 
+.m3-text-field__input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #09101e inset !important;
+  box-shadow: 0 0 0 1000px #09101e inset !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  caret-color: #f1f5f9 !important;
+  color: #f1f5f9 !important;
+  transition: background-color 50000s ease-in-out 0s !important;
+}
+.m3-text-field__input:autofill {
+  background-color: #09101e !important;
+  color: #f1f5f9 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  box-shadow: 0 0 0 1000px #09101e inset !important;
+}
 .m3-text-field__input::placeholder {
   color: var(--md-sys-color-on-surface-variant, #c3c7d2);
   opacity: 0.65;

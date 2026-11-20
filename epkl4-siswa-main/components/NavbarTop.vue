@@ -1,6 +1,6 @@
 <template>
   <header
-    class="m3-topappbar m3-state"
+    class="m3-topappbar modern-topbar m3-state"
     :class="[
       `m3-topappbar--${size}`,
       { 'm3-topappbar--scrolled': isScrolled },
@@ -10,9 +10,9 @@
     role="banner"
   >
     <div class="m3-topappbar__row">
-      <!-- Leading action -->
+      <!-- Leading action (Glass hamburger button) -->
       <button
-        class="m3-topappbar__leading m3-icon-btn m3-state"
+        class="m3-topappbar__leading glass-btn-leading"
         type="button"
         :aria-label="leadingLabel"
         @click="$emit('leading-click')"
@@ -20,41 +20,32 @@
         <i :class="`bi ${leadingIcon}`" aria-hidden="true"></i>
       </button>
 
-      <!-- Title -->
+      <!-- Title / Brand Area -->
       <div class="m3-topappbar__headline">
         <slot name="title">
-          <span class="m3-topappbar__title">{{ effectiveTitle }}</span>
-          <span v-if="subtitle" class="m3-topappbar__subtitle">{{ subtitle }}</span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="topbar-brand-badge">
+              <span class="brand-glow-dot"></span>
+              e-PKL
+            </span>
+            <span class="m3-topappbar__title">{{ effectiveTitle }}</span>
+          </div>
+          <span class="m3-topappbar__subtitle">
+            <i class="bi bi-building me-1"></i>SMK AL-FATAH BANJARNEGARA
+          </span>
         </slot>
       </div>
 
-      <!-- Spacer (small) / flexible spacer (medium/large) -->
+      <!-- Spacer -->
       <div class="m3-topappbar__spacer"></div>
 
-      <!-- Trailing actions (max 3 recommended M3) -->
+      <!-- Trailing actions (Cukup tombol notifikasi) -->
       <div class="m3-topappbar__actions" aria-label="Aksi">
-        <!-- Custom actions slot: use <template #actions> -->
         <slot name="actions">
-          <!-- Lonceng pengingat absen & jurnal (muncul otomatis ≥ 16.00 jika belum diisi) -->
-          <PengingatBell v-if="showNotifications" placement="bottom" />
-
-          <button
-            v-if="showAccount"
-            type="button"
-            class="m3-icon-btn m3-state m3-topappbar__action"
-            aria-label="Akun"
-            @click="$emit('action-account')"
-          >
-            <img
-              v-if="avatarUrl || resolvedAvatar"
-              :src="avatarUrl || resolvedAvatar"
-              alt="avatar"
-              class="m3-topappbar__avatar"
-              loading="lazy"
-              @error="avatarError = true"
-            />
-            <i v-else class="bi bi-person-circle" aria-hidden="true"></i>
-          </button>
+          <!-- Lonceng pengingat absen & jurnal -->
+          <div class="topbar-action-item">
+            <PengingatBell v-if="showNotifications" placement="bottom" />
+          </div>
         </slot>
       </div>
     </div>
@@ -230,22 +221,24 @@ onBeforeUnmount(detach)
   z-index: 1050;
   display: flex;
   flex-direction: column;
-  background-color: var(--md-sys-color-surface-container-high);
-  color: var(--md-sys-color-on-surface);
-  transition: box-shadow 0.2s ease, background-color 0.2s ease;
-  /* Default elevation 0 (flat when at top) */
-  box-shadow: var(--m3-elevation-level-0);
+  background: rgba(11, 18, 33, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.25s ease;
 }
 .m3-topappbar--scrolled {
-  box-shadow: var(--m3-elevation-level-2);
-  background-color: var(--md-sys-color-surface-container-highest);
+  background: rgba(11, 18, 33, 0.95) !important;
+  border-bottom-color: rgba(59, 130, 246, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55) !important;
 }
 
 .m3-topappbar__row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 4px 0 calc(4px + var(--m3-safe-left, 0px));
+  gap: 8px;
+  padding: 0 10px 0 calc(8px + var(--m3-safe-left, 0px));
   min-height: 64px;
   height: calc(64px + var(--m3-safe-top, 0px));
   padding-top: var(--m3-safe-top, 0px);
@@ -256,60 +249,117 @@ onBeforeUnmount(detach)
 .m3-topappbar--medium .m3-topappbar__row { min-height: 112px; height: calc(112px + var(--m3-safe-top, 0px)); align-items: flex-end; padding-bottom: 12px; }
 .m3-topappbar--large .m3-topappbar__row { min-height: 152px; height: calc(152px + var(--m3-safe-top, 0px)); align-items: flex-end; padding-bottom: 12px; }
 
-.m3-topappbar__leading,
-.m3-topappbar__action {
-  width: 48px;
-  height: 48px;
+.glass-btn-leading {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.glass-btn-leading:hover {
+  background: rgba(59, 130, 246, 0.16);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+  transform: scale(1.05);
+}
+
+.glass-btn-leading > i {
+  font-size: 1.3rem;
+}
+
+.topbar-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #60a5fa;
+  letter-spacing: 0.02em;
+}
+
+.brand-glow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 8px #3b82f6;
+  display: inline-block;
+}
+
+.m3-topappbar__leading,
+.m3-topappbar__action {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
   border: none;
   background: transparent;
-  border-radius: var(--md-sys-shape-corner-full);
+  border-radius: 12px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   isolation: isolate;
   flex-shrink: 0;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: all 0.2s ease;
 }
 .m3-topappbar__leading:hover,
-.m3-topappbar__action:hover { color: var(--md-sys-color-on-surface); }
-.m3-topappbar__leading::before,
-.m3-topappbar__action::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: currentColor;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  pointer-events: none;
-  z-index: 0;
-  border-radius: inherit;
+.m3-topappbar__action:hover {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.12);
 }
-.m3-topappbar__leading:hover::before,
-.m3-topappbar__action:hover::before { opacity: 0.08; }
-.m3-topappbar__leading:focus-visible,
-.m3-topappbar__action:focus-visible { outline: none; }
-.m3-topappbar__leading:focus-visible::before,
-.m3-topappbar__action:focus-visible::before { opacity: 0.12; }
-.m3-topappbar__leading:active::before,
-.m3-topappbar__action:active::before { opacity: 0.10; }
-.m3-topappbar__leading > i,
-.m3-topappbar__action > i {
-  font-size: 24px;
-  position: relative;
-  z-index: 1;
+
+.topbar-avatar-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
 }
+
 .m3-topappbar__avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--md-sys-shape-corner-full);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--md-sys-color-outline-variant);
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
   position: relative;
   z-index: 1;
+  transition: transform 0.2s ease;
+}
+.m3-topappbar__avatar:hover {
+  transform: scale(1.08);
+}
+
+.avatar-fallback-top {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
 }
 
 .m3-topappbar__headline {
@@ -325,9 +375,10 @@ onBeforeUnmount(detach)
 .m3-topappbar--medium .m3-topappbar__headline,
 .m3-topappbar--large .m3-topappbar__headline { justify-content: flex-end; }
 .m3-topappbar__title {
-  font: var(--md-sys-typescale-title-large-font);
-  letter-spacing: 0px;
-  color: var(--md-sys-color-on-surface);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -335,13 +386,16 @@ onBeforeUnmount(detach)
 }
 .m3-topappbar--medium .m3-topappbar__title,
 .m3-topappbar--large .m3-topappbar__title {
-  font: var(--md-sys-typescale-headline-small-font);
+  font-size: 1.3rem;
   white-space: normal;
-  line-height: 36px;
+  line-height: 32px;
 }
 .m3-topappbar__subtitle {
-  font: var(--md-sys-typescale-body-small-font);
-  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -352,16 +406,13 @@ onBeforeUnmount(detach)
 .m3-topappbar__actions {
   display: inline-flex;
   align-items: center;
-  gap: 0px;
+  gap: 4px;
   padding-right: var(--m3-safe-right, 0px);
 }
 .m3-topappbar__action { position: relative; }
 
 .m3-topappbar__divider {
-  height: 1px;
-  background: var(--md-sys-color-outline-variant);
-  margin: 0 0 0;
-  opacity: 0.5;
+  display: none;
 }
 
 /* Mobile-only */

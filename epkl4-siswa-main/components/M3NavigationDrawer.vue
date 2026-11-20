@@ -256,6 +256,10 @@ const destinationGroups = computed(() => {
     menuUtama.push({ to: '/elemen', icon: 'bi-journal-bookmark-fill', label: 'Elemen CP' })
   }
   menuUtama.push({ to: '/jurnal', icon: 'bi-journals', label: 'Jurnal Harian', badge: (props.countUnread || 0) + (props.countDraft || 0) || undefined })
+  if (role.value === 'guru' || role.value === 'admin') {
+    menuUtama.push({ to: '/guru/validasi', icon: 'bi-clipboard-check-fill', label: 'Validasi Jurnal' })
+    menuUtama.push({ to: '/galeri', icon: 'bi-images', label: 'Galeri Foto PKL' })
+  }
   menuUtama.push({ to: '/nilai', icon: 'bi-patch-check-fill', label: 'Nilai PKL' })
   menuUtama.push({ to: '/proyek', icon: 'bi-calendar2-check-fill', label: 'Absen PKL' })
 

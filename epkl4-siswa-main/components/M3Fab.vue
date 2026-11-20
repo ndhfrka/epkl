@@ -1,6 +1,6 @@
 <template>
   <component
-    :is="to ? 'nuxt-link' : 'button'"
+    :is="dynamicTag"
     v-bind="componentAttrs"
     :class="[
       'm3-fab',
@@ -36,6 +36,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['click'])
+
+const NuxtLinkComponent = resolveComponent('NuxtLink')
+const dynamicTag = computed(() => props.to ? NuxtLinkComponent : 'button')
 
 const componentAttrs = computed(() => {
   const attrs = {}

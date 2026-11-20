@@ -14,6 +14,9 @@
 //   localStorage.removeItem('epkl_jam_pengingat')
 const DEFAULT_JAM_PENGINGAT = 16
 
+// JAM BATAS JURNAL: siswa tidak bisa mengisi jurnal & langsung ditandai alpha
+const JAM_BATAS_JURNAL = 18
+
 // --- state bersama (module-level) ---
 const items = ref([])
 const memeriksa = ref(false)
@@ -30,6 +33,7 @@ let visibilityTerpasang = false  // listener visibilitychange cukup 1x
 export function usePengingat() {
   const user = usePocketBaseUser()
   const client = usePocketBaseClient()
+  const { tandaiAlphaOtomatis } = useAbsenOtomatis()
 
   const role = computed(() => user?.user.value?.role || 'siswa')
   const uid = computed(() => user?.user.value?.id || '')
@@ -91,6 +95,35 @@ export function usePengingat() {
         transisiTimerId = null
         cekPengingatInternal(false, 1, true) // dariTransisi → lewati throttle
       }, ms + 1000)
+    }
+  }
+
+  // ========================================================================
+  // TIMER ALPHA JAM 18.00 — tandai siswa ALPHA jika belum isi jurnal
+  // ========================================================================
+  let alphaTimerId = null
+
+  function msMenujuJamAlpha(now = new Date()) {
+    const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), JAM_BATAS_JURNAL, 0, 5, 0)
+    return target.getTime() - now.getTime()
+  }
+
+  function jadwalkanAlpha() {
+    if (!import.meta.client) return
+    if (alphaTimerId) { clearTimeout(alphaTimerId); alphaTimerId = null }
+    const now = new Date()
+    // Jika sudah lewat jam batas hari ini, langsung cek sekarang (mungkin baru buka app)
+    if (now.getHours() >= JAM_BATAS_JURNAL) {
+      tandaiAlphaOtomatis()
+      return
+    }
+    const ms = msMenujuJamAlpha(now)
+    if (ms > 0 && ms < 24 * 60 * 60 * 1000) {
+      alphaTimerId = setTimeout(() => {
+        alphaTimerId = null
+        tandaiAlphaOtomatis()
+        cekPengingatInternal(false, 1, true)
+      }, ms)
     }
   }
 
@@ -247,6 +280,7 @@ export function usePengingat() {
         cekPengingat()
         mulaiInterval()
         jadwalkanTransisi()
+        jadwalkanAlpha()
         pasangVisibilityListener()
       }
       else { stopInterval(); items.value = [] }
@@ -254,5 +288,5 @@ export function usePengingat() {
     { immediate: true }
   )
 
-  return { items, memeriksa, cekPengingat, role, JAM_PENGINGAT: DEFAULT_JAM_PENGINGAT, jamPengingatEfektif }
+  return { items, memeriksa, cekPengingat, role, JAM_PENGINGAT: DEFAULT_JAM_PENGINGAT, jamPengingatEfektif, JAM_BATAS_JURNAL }
 }

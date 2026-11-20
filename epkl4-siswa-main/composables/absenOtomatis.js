@@ -2,6 +2,10 @@ import { usePocketBaseClient } from "./pocketBaseClient"
 import { usePocketBaseUser } from "./pocketBaseUser"
 import { usePengingat } from "./usePengingat"
 
+// JAM BATAS PENGISIAN JURNAL (WIB) — siswa tidak boleh mengisi setelah jam ini.
+// Jika belum mengisi sampai jam ini, otomatis ditandai ALPHA.
+export const JAM_BATAS_JURNAL = 18
+
 // Isi otomatis tabel absen dari kegiatan jurnal:
 // setiap kegiatan yang di-upload (Tambah Kegiatan) menjadi 1 baris baru
 // di tabel absen — kolom "Jenis Kegiatan" terisi nama kegiatannya dan
@@ -56,5 +60,72 @@ export const useAbsenOtomatis = () => {
     }
   }
 
-  return { tandaiAbsenOtomatis }
+  /**
+   * Tandai ALPHA otomatis pada hari ini jika siswa belum mengisi jurnal
+   * dan sudah melewati JAM_BATAS_JURNAL (18.00 WIB).
+   * Dipanggil oleh usePengingat tepat saat jam 18.00 atau saat app dibuka setelah jam tersebut.
+   */
+  async function tandaiAlphaOtomatis() {
+    try {
+      if (!user.user.value?.id || user.user.value?.role === 'guru') return
+      const now = new Date()
+      const hari = now.getDate()
+      const bulan = now.getMonth() + 1
+      const tahun = now.getFullYear()
+      client.autoCancellation(false)
+
+      // Cek apakah sudah ada jurnal final (bukan draft) hari ini
+      let sudahAdaJurnal = false
+      try {
+        const jurnalHariIni = await client.collection('jurnal').getList(1, 5, {
+          filter: `siswa="${user.user.value.id}" && isDraft=false`,
+          sort: '-created',
+          fields: 'id,created,tanggal_agenda,isDraft',
+          requestKey: null
+        })
+        sudahAdaJurnal = (jurnalHariIni?.items || []).some(j => {
+          // cocokkan tanggal agenda atau tanggal dibuat
+          const tgl = j.tanggal_agenda
+            ? String(j.tanggal_agenda).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+            : null
+          if (tgl) {
+            const t = new Date(+tgl[3], +tgl[2] - 1, +tgl[1])
+            if (t.getDate() === hari && t.getMonth() + 1 === bulan && t.getFullYear() === tahun) return true
+          }
+          const buat = j.created ? new Date(String(j.created).replace(' ', 'T')) : null
+          return !!(buat && !isNaN(buat) && buat.getDate() === hari && buat.getMonth() + 1 === bulan && buat.getFullYear() === tahun)
+        })
+      } catch (_) {}
+
+      // Jika sudah ada jurnal → tidak perlu alpha
+      if (sudahAdaJurnal) return
+
+      // Cek apakah sudah ada mark (apapun) di absen hari ini
+      const existing = await client.collection('absen').getFullList({
+        filter: `user="${user.user.value.id}" && bulan=${bulan} && tahun=${tahun}`
+      })
+      const sudahAdaMark = existing.some(r => {
+        if (!r.marks || typeof r.marks !== 'object') return false
+        const val = r.marks[String(hari)]
+        if (val === null || val === undefined) return false
+        return String(val).trim() !== ''
+      })
+
+      if (sudahAdaMark) return // sudah ada tanda apapun, skip
+
+      // Belum ada jurnal & belum ada mark → tandai ALPHA ('x')
+      await client.collection('absen').create({
+        user: user.user.value.id,
+        uraian: 'Alpha — tidak mengisi jurnal PKL',
+        marks: { [String(hari)]: 'x' },
+        bulan,
+        tahun
+      })
+      cekPengingat(true)
+    } catch (e) {
+      console.error('Gagal menandai alpha otomatis:', e)
+    }
+  }
+
+  return { tandaiAbsenOtomatis, tandaiAlphaOtomatis }
 }

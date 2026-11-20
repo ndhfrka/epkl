@@ -12,7 +12,7 @@
       >
         <nuxt-link
           :to="dest.to"
-          class="m3-navbar__link m3-state"
+          class="m3-navbar__link"
           v-slot="{ isActive, href, navigate }"
           custom
         >
@@ -88,7 +88,14 @@ const destinations = computed(() => {
       label: 'Home',
     },
   ]
-  if (!isInstansi.value) {
+  if (isGuru.value) {
+    list.push({
+      to: '/guru/validasi',
+      icon: 'bi-clipboard-check',
+      iconActive: 'bi-clipboard-check-fill',
+      label: 'Validasi',
+    })
+  } else if (!isInstansi.value) {
     list.push({
       to: '/iduka',
       icon: 'bi-buildings',
@@ -141,16 +148,15 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   z-index: 1040;
-  padding: 12px 8px calc(12px + var(--m3-safe-bottom, 0px));
-  background-color: var(--md-sys-color-surface-container-high);
-  color: var(--md-sys-color-on-surface);
-  /* Top corners M3 shape large */
-  border-top-left-radius: var(--md-sys-shape-corner-large);
-  border-top-right-radius: var(--md-sys-shape-corner-large);
+  padding: 8px 8px calc(8px + var(--m3-safe-bottom, 0px));
+  background: rgba(11, 18, 33, 0.88) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.65), 0 -1px 0 rgba(59, 130, 246, 0.25) !important;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
   border: none;
-  border-top: 1px solid var(--md-sys-color-outline-variant);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .m3-navbar__list {
@@ -158,10 +164,10 @@ onMounted(() => {
   margin: 0;
   padding: 0;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: space-around;
   width: 100%;
-  max-width: 640px;
+  max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -179,12 +185,16 @@ onMounted(() => {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   text-decoration: none !important;
   padding: 0;
   width: 100%;
   isolation: isolate;
   overflow: visible;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .m3-navbar__link-inner {
@@ -192,79 +202,92 @@ onMounted(() => {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 4px;
+  justify-content: center;
+  gap: 2px;
   width: 100%;
-  min-width: 48px;
-  padding: 4px 0 0;
+  min-width: 44px;
+  padding: 4px 0 2px;
   text-decoration: none;
-  color: var(--md-sys-color-on-surface-variant);
+  color: #94a3b8;
   isolation: isolate;
+  border-radius: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.m3-navbar__link-inner:hover,
+.m3-navbar__link-inner:focus,
+.m3-navbar__link-inner:active,
+.m3-navbar__link-inner:focus-visible,
+.m3-navbar__link-inner--active {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.m3-navbar__link::before,
+.m3-navbar__link::after,
+.m3-navbar__link-inner::before,
+.m3-navbar__link-inner::after {
+  display: none !important;
+  content: none !important;
 }
 
 .m3-navbar__indicator {
   position: absolute;
-  top: 0;
+  top: 1px;
   left: 50%;
-  transform: translateX(-50%) scaleX(0);
+  transform: translateX(-50%) scale(0.6);
   transform-origin: center;
-  width: 64px;
+  width: 52px;
   height: 32px;
-  border-radius: var(--md-sys-shape-corner-full);
-  background-color: var(--md-sys-color-secondary-container);
-  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), opacity 0.25s ease;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.4);
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
   opacity: 0;
   pointer-events: none;
   z-index: 0;
 }
 .m3-navbar__indicator--active {
-  transform: translateX(-50%) scaleX(1);
+  transform: translateX(-50%) scale(1);
   opacity: 1;
 }
 
-/* State layer on indicator area when active */
-.m3-navbar__link-inner::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 64px;
-  height: 32px;
-  border-radius: var(--md-sys-shape-corner-full);
-  background: currentColor;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-.m3-navbar__link-inner:hover::after { opacity: 0.08; }
-.m3-navbar__link-inner--active::after { background: var(--md-sys-color-on-secondary-container); }
-
 .m3-navbar__icon {
-  font-size: 24px;
-  line-height: 32px;
-  height: 32px;
+  font-size: 20px;
+  line-height: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   position: relative;
   z-index: 2;
-  transition: color 0.2s ease, transform 0.15s ease;
+  color: #94a3b8;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .m3-navbar__link-inner--active .m3-navbar__icon {
-  color: var(--md-sys-color-on-secondary-container);
+  color: #38bdf8 !important;
+  transform: translateY(-2px) scale(1.12);
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
 }
 .m3-navbar__link-inner:active .m3-navbar__icon { transform: scale(0.92); }
 
 .m3-navbar__label {
-  font: var(--md-sys-typescale-label-medium-font);
-  letter-spacing: 0.5px;
-  line-height: 16px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 14px;
   position: relative;
   z-index: 2;
-  color: var(--md-sys-color-on-surface-variant);
-  transition: color 0.2s ease, font-weight 0.2s ease;
+  color: #64748b;
+  transition: all 0.2s ease;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -272,33 +295,34 @@ onMounted(() => {
   padding: 0 4px;
 }
 .m3-navbar__link-inner--active .m3-navbar__label {
-  color: var(--md-sys-color-on-surface);
-  font: var(--md-sys-typescale-label-large-font);
-  letter-spacing: 0.1px;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
 }
 
-/* Badge M3 */
+/* Badge M3 Modern Neon */
 .m3-navbar__badge {
   position: absolute;
-  top: 0;
+  top: 1px;
   left: calc(50% + 14px);
   transform: translateX(-50%);
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  border-radius: var(--md-sys-shape-corner-small);
-  background-color: var(--md-sys-color-error);
-  color: var(--md-sys-color-on-error);
-  font: var(--md-sys-typescale-label-small-font);
-  letter-spacing: 0.5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   z-index: 3;
-  border: 2px solid var(--md-sys-color-surface-container-high);
+  border: 2px solid #0b1221 !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7) !important;
   box-sizing: content-box;
 }
-.m3-navbar__badge--small { min-width: 6px; width: 6px; height: 6px; padding: 0; border-radius: var(--md-sys-shape-corner-full); }
+.m3-navbar__badge--small { min-width: 7px; width: 7px; height: 7px; padding: 0; border-radius: var(--md-sys-shape-corner-full); }
 
 /* Desktop: hide component (hanya mobile) */
 @media (min-width: 992px) {

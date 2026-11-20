@@ -2,11 +2,7 @@
   <div class="card">
     <div class="card-header">
       <span class="h5 fw-bold"><i class="bi bi-journals"></i> Jurnal</span>
-      <span v-if="$device.isMobile">
-        <span v-if="pemetaan.length > 0 && !havePostJournalToday && !isGuru" class="float-end journal-button">
-          <NuxtLink to="/jurnal/tambah" class="btn btn-dark btn-sm border border-2 border-dark"><i class="bi bi-pencil-square"></i> Buat</NuxtLink>
-        </span>
-      </span>
+
     </div>
     <!-- ./card-heder -->
 
@@ -56,7 +52,7 @@
 
     <!-- card-body -->
     <div class="card-body">
-      <!-- toggle tampilan & aksi ekspor -->
+      <!-- Aksi ekspor -->
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
           <!-- Tombol Ekspor PDF yang selalu terlihat, kontras tinggi dan sangat jelas -->
@@ -77,18 +73,10 @@
             </template>
           </button>
         </div>
-        <div class="btn-group btn-group-sm shadow-sm" role="group" aria-label="Tampilan">
-          <button :class="viewMode == 'agenda' ? 'btn btn-dark fw-semibold' : 'btn btn-outline-secondary'" @click="viewMode = 'agenda'">
-            <i class="bi bi-table"></i> Agenda
-          </button>
-          <button :class="viewMode == 'list' ? 'btn btn-dark fw-semibold' : 'btn btn-outline-secondary'" @click="viewMode = 'list'">
-            <i class="bi bi-list-ul"></i> List
-          </button>
-        </div>
       </div>
 
       <!-- TAMPILAN AGENDA HARIAN PKL -->
-      <div v-if="viewMode == 'agenda'">
+      <div>
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <div class="d-flex gap-2">
             <select v-model="filterBulan" class="form-select form-select-sm agenda-filter" aria-label="Filter bulan">
@@ -132,6 +120,7 @@
                   <th class="col-no">No.</th>
                   <th class="col-tgl">Hari/Tanggal</th>
                   <th>Uraian kegiatan yang dilakukan</th>
+                  <th class="col-status text-center" style="width: 145px;">Status Validasi</th>
                   <th class="col-ttd">Tanda tangan Instansi</th>
                 </tr>
               </thead>
@@ -139,11 +128,13 @@
                 <tr v-for="(j, i) in agendaItems" :key="j.id">
                   <td class="col-no text-center">{{ i + 1 }}</td>
                   <td class="col-tgl">
-                    <template v-if="editingTglId === j.id">
+                    <template v-if="editingTglId === j.id && (isGuru || isInstansi)">
                       <input :id="'tgl-input-' + j.id" v-model="editingTglText" class="form-control form-control-sm" type="text" @keyup.enter="saveTgl()" @blur="saveTgl()" />
                     </template>
                     <template v-else>
-                      <span class="tgl-text" :class="{ 'info-empty': !j.tanggalAgenda }" title="Klik untuk mengisi" @click="startEditTgl(j)">{{ j.tanggalAgenda || j.tanggal }}</span>
+                      <span class="tgl-text" :class="{ 'info-empty': !j.tanggalAgenda }" :title="(!isGuru && !isInstansi) ? 'Waktu server resmi terkunci' : 'Klik untuk mengisi'" @click="(isGuru || isInstansi) ? startEditTgl(j) : null">
+                        {{ j.tanggalAgenda || j.tanggal }}
+                      </span>
                     </template>
                   </td>
                   <td class="pre-text">
@@ -161,6 +152,14 @@
                         <button class="btn-action" title="Hapus kegiatan" @click="hapusJurnal(j)"><i class="bi bi-trash-fill"></i></button>
                       </span>
                     </template>
+                  </td>
+                  <td class="col-status text-center">
+                    <span v-if="j.isValid" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 0.72rem;" title="Jurnal telah divalidasi oleh Guru Pembimbing Jurusan">
+                      <i class="bi bi-check-circle-fill me-1"></i> Terupload & Valid
+                    </span>
+                    <span v-else class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1" style="font-size: 0.72rem;" title="Menunggu validasi dari Guru Jurusan sebelum resmi disahkan">
+                      <i class="bi bi-hourglass-split me-1"></i> Menunggu Validasi
+                    </span>
                   </td>
                   <td class="col-ttd">
                     <template v-if="j.ttd?.length || ttdMap[j.id]">
@@ -189,6 +188,7 @@
                       </template>
                       <span v-else class="fill-hint" @click="startNew('baru-' + n)"><i class="bi bi-plus-lg"></i> tulis kegiatan</span>
                     </td>
+                    <td class="col-status"></td>
                     <td class="col-ttd"></td>
                   </tr>
                 </template>
@@ -196,145 +196,6 @@
             </table>
           </div>
         </div>
-      </div>
-
-      <!-- TAMPILAN LIST (LAMA) -->
-      <div v-else>
-      <div class="row">
-        <div class="col-md-12">
-          <div v-if="countDraftJournal > 0 || notValidCount > 0" class="alert alert-warning small">
-            <div v-if="countDraftJournal > 0">
-              <span class="fw-bold">{{ countDraftJournal }}</span> Draft
-            </div>
-            <div v-if="notValidCount > 0">
-              <span class="fw-bold">{{ notValidCount }}</span> Jurnal belum divalidasi 
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12 p-0">
-              <div v-if="!isLoadingJournals" class="mx-3 text-center text-muted smallest">
-                <!-- <span v-if="journals.totalItems" class="float-start">Halaman <span class="fw-bold">{{ journals.page }}</span> dari <span class="fw-bold">{{ journals.totalPages }}</span></span> -->
-                <!-- <span v-if="journals.totalItems">Menampilkan {{ journals.items.length }}  dari {{ journals.totalItems }} Jurnal</span> -->
-                <span v-if="journals.totalItems" class="badge border border-dark text-dark">{{ journals.totalItems }} Jurnal</span>
-              </div>
-              <div v-if="!isLoadingJournals" class="text-center text-muted fw-bold fs-4">
-                <span v-if="journals.totalItems == 0">
-                  <div class="fs-1 pt-5"><i class="bi bi-database"></i></div>
-                  Belum ada jurnal
-                </span>
-              </div>
-
-              <!-- Filter by elemen / tujuan pembelajaran -->
-              <div class="mx-3 mt-2 sticky">
-                <select @change="getJournals" v-model="opsiFilterElemen" name="elemen" class="form form-select form-sm">
-                  <option value="" disabled>Filter Jurnal</option>
-                  <option value="Semua">Semua</option>
-                  <option value="sesuai">Sesuai Elemen</option>
-                  <option value="Lain-lain">Tidak Sesuai Elemen</option>
-                </select> 
-              </div>
-
-              <Loading class="py-3" v-if="isLoadingJournals" />
-              <div v-else v-for="journal in journals.items" :key="journal.id"
-                class="card jurnal-hover jurnal-item no-shadow">
-                <div class="card-body">
-                  <!-- <div class="bookmark fs-2">
-                    <div v-if="journal.expand.elemen.elemen == 'Lain-lain'" class="bookmark-icon text-danger"><i class="bi bi-bookmark-fill"></i></div>
-                    <div v-else class="bookmark-icon text-info"><i class="bi bi-bookmark-fill"></i></div>
-                  </div> -->
-                  <div class="mb-1 smallest fw-bold text-muted">
-                    <span v-if="journal.expand.elemen?.elemen == 'Lain-lain'"><i
-                        class="bi bi-bookmark-fill text-danger"></i> {{ journal.expand.elemen?.elemen || 'Belum ada elemen' }}</span>
-                    <span v-else-if="journal.expand.elemen"><i class="bi bi-bookmark-fill text-info"></i> {{ journal.expand.elemen.elemen }}</span>
-                    <span v-else><i class="bi bi-bookmark-fill text-muted"></i> Belum ada elemen</span>
-                  </div>
-                  <div v-if="isInstansi && journal.expand.siswa?.siswa" class="small fw-bold text-grey"><i class="bi bi-person"></i> {{ journal.expand.siswa.siswa.nama }}</div>
-                  <span class="text-muted smallest"><i class="bi bi-calendar2-date"></i> {{ journal.created }}</span>
-                  <article class="my-3 pre-text">
-                    {{ journal.deskripsi }}
-                  </article>
-
-                  <div v-if="journal.foto?.length" class="my-3 foto-container hand-cursor" data-bs-toggle="modal"
-                    :data-bs-target="`#foto-${journal.id}`">
-                    <img :src="`${host}/api/files/${journal.collectionId}/${journal.id}/${journal.foto}`"
-                      :alt="journal.deskripsi" class="foto" />
-                  </div>
-                  <div v-if="journal.isValid" class="text-muted small float-start">
-                    <span class="text-danger"><i class="bi bi-heart-fill"></i></span>
-                  </div>
-                  <div v-else class="text-muted small float-start">
-                    <span class="text-danger me-2"><i class="bi bi-heart"></i></span>
-                    <span v-if="$device.isMobile && journal.isDraft && !isInstansi && !isGuru" data-bs-toggle="modal" data-bs-target="#edit-jurnal" @click="setModalEditJurnal(journal)" class="badge border border-1 border-danger text-danger smallest hand-cursor">
-                      <i class="bi bi-pencil-square"></i> Edit Draft
-                    </span>
-                  </div>
-
-                  <div v-if="journal.isComment" @click="getKomentarByIdJurnal(journal)" class="float-end text-muted small hand-cursor" data-bs-toggle="modal" data-bs-target="#modal-lihat-komentar">
-                    <i class="bi bi-chat-left-fill"></i> Lihat komentar
-                  </div>
-
-                </div>
-
-                <!-- MODAL FOTO PREVIEW -->
-                <div v-if="journal.foto?.length" class="modal" :id="`foto-${journal.id}`" aria-hidden="true" tabindex="-1">
-                  <div class="modal-dialog modal-dialog-centered modal-xl">
-                    <div class="modal-content rounded-0 border border-3 border-dark shadow-lg">
-                      <div class="modal-header rounded-0 border-0 border-bottom border-3 border-dark fw-bold">
-                        Preview
-                        <button class="btn-close" data-bs-dismiss="modal" label="Close"></button>
-                      </div>
-                      <div class="modal-body p-0">
-                        <img :src="`${host}/api/files/${journal.collectionId}/${journal.id}/${journal.foto}`"
-                          :alt="journal.deskripsi" class="foto-preview" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- single modal: lihat komentar -->
-              <div class="modal" id="modal-lihat-komentar">
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content rounded-0 border border-3 border-dark shadow-lg">
-                    <div class="modal-body">
-                      <loading-placeholder v-if="isLoadingKomentar" row="1" col="12" /> 
-                      <div v-else>
-                        <div v-if="pratinjauKomentar" class="text-muted small">{{ pratinjauKomentar.created }}</div>
-                        <div v-if="pratinjauKomentar" class="my-2">
-                          {{ pratinjauKomentar.komentar }}
-                        </div>
-                      </div>
-                      <div class="text-end text-muted fw-bold mt-3 hand-cursor" data-bs-dismiss="modal">Tutup</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div class="row my-3 mb-2">
-            <div v-if="!isLoadingJournals" class="col-md-12">
-              <loading v-if="isMovingPage" /> 
-              <!--<div v-else>
-                <div v-if="journals || isMovingPage" class="text-muted smallest mb-2">
-                  <span v-if="journals.totalItems">Halaman {{ journals.page }} dari {{ journals.totalPages }}</span>
-                </div>
-              </div>
-              <button v-if="journals.totalItems" :disabled="isMovingPage || journals.page < 2"
-                @click="pagination(journals.page - 1, false)" class="btn btn-info me-2 border border-2 border-dark">
-                sebelumnya
-              </button>-->
-              <div class="text-center">
-                <button v-if="journals.totalItems" :disabled="isMovingPage || journals.page >= journals.totalPages" @click="pagination(journals.page + 1, false)" class="btn btn-dark border border-2 border-dark">
-                  muat lagi <i class="bi bi-arrow-down"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
       </div>
     </div>
   </div>
@@ -454,7 +315,7 @@ async function getJurnalAgenda() {
       const list = await client.collection('jurnal').getList(1, 500, {
         filter: (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${user.user.value.id}"`,
         sort: "+created",
-        fields: "id,deskripsi,created,tanggal_agenda,ttd",
+        fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid",
         requestKey: null
       })
       res = list?.items || []
@@ -464,7 +325,7 @@ async function getJurnalAgenda() {
           const np = await client.collection('jurnal').getList(p, 500, {
             filter: (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${user.user.value.id}"`,
             sort: "+created",
-            fields: "id,deskripsi,created,tanggal_agenda,ttd"
+            fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid"
           })
           if (np?.items?.length) res = res.concat(np.items)
         }
@@ -474,14 +335,14 @@ async function getJurnalAgenda() {
       res = await client.collection('jurnal').getFullList(500, {
         filter: (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${user.user.value.id}"`,
         sort: "+created",
-        fields: "id,deskripsi,created,tanggal_agenda,ttd"
+        fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid"
       })
     }
     jurnalAgenda.value = res.map(j => {
       const d = parseAgendaDate(j.tanggal_agenda) || new Date(j.created)
       const hari = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d)
       const tanggal = `${hari}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
-      return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', _d: d }
+      return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, _d: d }
     })
   } catch (e) {
     jurnalAgenda.value = []
