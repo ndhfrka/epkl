@@ -33,7 +33,20 @@ let visibilityTerpasang = false  // listener visibilitychange cukup 1x
 export function usePengingat() {
   const user = usePocketBaseUser()
   const client = usePocketBaseClient()
-  const { tandaiAlphaOtomatis } = useAbsenOtomatis()
+
+  // [PERBAIKAN REKURSI] JANGAN memanggil useAbsenOtomatis() di sini (setup).
+  // useAbsenOtomatis() juga memanggil usePengingat() di setup-nya — jika keduanya
+  // saling memanggil saat setup, terjadi rekursi tak berujung:
+  //   RangeError: Maximum call stack size exceeded (saat <PengingatBell> mount).
+  // Solusi: ambil secara LAZY, hanya tepat sebelum benar-benar dipakai.
+  function jalankanTandaiAlpha() {
+    try {
+      const { tandaiAlphaOtomatis } = useAbsenOtomatis()
+      tandaiAlphaOtomatis()
+    } catch (e) {
+      console.error('Gagal memicu tandai alpha otomatis:', e)
+    }
+  }
 
   const role = computed(() => user?.user.value?.role || 'siswa')
   const uid = computed(() => user?.user.value?.id || '')
@@ -114,14 +127,14 @@ export function usePengingat() {
     const now = new Date()
     // Jika sudah lewat jam batas hari ini, langsung cek sekarang (mungkin baru buka app)
     if (now.getHours() >= JAM_BATAS_JURNAL) {
-      tandaiAlphaOtomatis()
+      jalankanTandaiAlpha()
       return
     }
     const ms = msMenujuJamAlpha(now)
     if (ms > 0 && ms < 24 * 60 * 60 * 1000) {
       alphaTimerId = setTimeout(() => {
         alphaTimerId = null
-        tandaiAlphaOtomatis()
+        jalankanTandaiAlpha()
         cekPengingatInternal(false, 1, true)
       }, ms)
     }

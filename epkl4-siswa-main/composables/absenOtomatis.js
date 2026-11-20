@@ -13,7 +13,20 @@ export const JAM_BATAS_JURNAL = 18
 export const useAbsenOtomatis = () => {
   let client = usePocketBaseClient()
   let user = usePocketBaseUser()
-  const { cekPengingat } = usePengingat()
+
+  // [PERBAIKAN REKURSI] JANGAN memanggil usePengingat() di sini (setup).
+  // usePengingat() juga memanggil useAbsenOtomatis() di setup-nya — jika keduanya
+  // saling memanggil saat setup, terjadi rekursi tak berujung:
+  //   RangeError: Maximum call stack size exceeded (saat <PengingatBell> mount).
+  // Solusi: ambil cekPengingat secara LAZY, hanya saat benar-benar dipakai.
+  function refreshPengingat(paksa = true) {
+    try {
+      const { cekPengingat } = usePengingat()
+      cekPengingat(paksa)
+    } catch (e) {
+      console.error('Gagal memicu refresh pengingat:', e)
+    }
+  }
 
   // format tanggal agenda: "Hari, D/M/YYYY"
   function parseTanggalAgenda(s) {
@@ -47,14 +60,14 @@ export const useAbsenOtomatis = () => {
           bulan,
           tahun
         })
-        cekPengingat(true) // absen terisi → segarkan notif pengingat seketika
+        refreshPengingat(true) // absen terisi → segarkan notif pengingat seketika
         return
       }
       const marks = (rec.marks && typeof rec.marks === 'object' && !Array.isArray(rec.marks)) ? { ...rec.marks } : {}
       if (marks[hari]) return
       marks[String(hari)] = 'v'
       await client.collection('absen').update(rec.id, { marks })
-      cekPengingat(true) // absen terisi → segarkan notif pengingat seketika
+      refreshPengingat(true) // absen terisi → segarkan notif pengingat seketika
     } catch (e) {
       console.error('Gagal mengisi absen otomatis:', e)
     }
@@ -121,7 +134,7 @@ export const useAbsenOtomatis = () => {
         bulan,
         tahun
       })
-      cekPengingat(true)
+      refreshPengingat(true)
     } catch (e) {
       console.error('Gagal menandai alpha otomatis:', e)
     }
