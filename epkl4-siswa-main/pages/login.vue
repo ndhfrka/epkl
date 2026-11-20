@@ -229,6 +229,15 @@ async function handleLogin() {
   background: transparent;
   padding: 0 10px 0 0;
   color: var(--md-sys-color-on-surface, #e2e8f0);
+  /* [PERBAIKAN TEKS HITAM] Layar login selalu gelap, jadi teks input dipaksa
+     terang di SEMUA kondisi (ketikan manual, isi-otomatis/autofill, fokus).
+     Sebagian browser (Chrome, Samsung Internet, WebView Android) memaksa
+     teks jadi hitam saat isi-otomatis aktif sehingga tulisan tak terlihat
+     di atas latar gelap. -webkit-text-fill-color menimpa gaya internal
+     browser; color menangani Firefox. */
+  color: #f1f5f9 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  caret-color: #f1f5f9 !important;
   font: var(--md-sys-typescale-body-large-font, 400 16px/1.5 "Plus Jakarta Sans", sans-serif);
   font-size: 16px !important;  /* 16px = standard, hindari zoom auto di iOS */
   letter-spacing: 0.2px;
