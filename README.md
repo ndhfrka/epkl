@@ -121,6 +121,6 @@ Riwayat lengkap ada di [`epkl4-siswa-main/CHANGELOG.md`](epkl4-siswa-main/CHANGE
 
 ## 👤 Penulis & Lisensi
 
-- Author: **Zul Hilmi** (@ndhfrka)
+- Author: **Muhammad Nadhif Raka Saputra** (@ndhfrka)
 - Aplikasi siswa: lisensi **MIT**
 - Dikembangkan untuk kebutuhan sekolah SMK Al Fatah Banjarnegara
