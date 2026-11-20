@@ -9,7 +9,10 @@ export const JAM_BATAS_JURNAL = 18
 // Isi otomatis tabel absen dari kegiatan jurnal:
 // setiap kegiatan yang di-upload (Tambah Kegiatan) menjadi 1 baris baru
 // di tabel absen — kolom "Jenis Kegiatan" terisi nama kegiatannya dan
-// tanda ✓ diletakkan tepat di kolom tanggal kegiatan tersebut (sejajar barisnya).
+// tanda diletakkan tepat di kolom tanggal kegiatan tersebut (sejajar barisnya).
+// Jenis tanda otomatis: ✓ hadir, S jika teks kegiatan mengandung kata "sakit",
+// I jika mengandung kata "izin". Alpa ('A') ditandai otomatis oleh
+// tandaiAlphaOtomatis() saat lewat jam 18.00 tanpa jurnal.
 export const useAbsenOtomatis = () => {
   let client = usePocketBaseClient()
   let user = usePocketBaseUser()
@@ -43,6 +46,11 @@ export const useAbsenOtomatis = () => {
       const teks = String(teksKegiatan || '').trim()
       if (!d || !teks || !user.user.value?.id) return
       if (user.user.value.role === 'guru') return
+      // [FITUR SAKIT/IZIN] deteksi kata "sakit" / "izin" pada teks kegiatan:
+      // baris absen akan menandai S (sakit) atau I (izin) alih-alih ✓ (hadir).
+      // \b (word boundary) supaya tidak salah tangkap pada kata lain, mis. "mengizinkan".
+      const teksLower = teks.toLowerCase()
+      const markBaru = /\bsakit\b/.test(teksLower) ? 's' : (/\bizin\b/.test(teksLower) ? 'i' : 'v')
       const hari = d.getDate()
       const bulan = d.getMonth() + 1
       const tahun = d.getFullYear()
@@ -56,7 +64,7 @@ export const useAbsenOtomatis = () => {
         await client.collection('absen').create({
           user: user.user.value.id,
           uraian: teks,
-          marks: { [String(hari)]: 'v' },
+          marks: { [String(hari)]: markBaru },
           bulan,
           tahun
         })
@@ -65,7 +73,7 @@ export const useAbsenOtomatis = () => {
       }
       const marks = (rec.marks && typeof rec.marks === 'object' && !Array.isArray(rec.marks)) ? { ...rec.marks } : {}
       if (marks[hari]) return
-      marks[String(hari)] = 'v'
+      marks[String(hari)] = markBaru
       await client.collection('absen').update(rec.id, { marks })
       refreshPengingat(true) // absen terisi → segarkan notif pengingat seketika
     } catch (e) {
@@ -173,10 +181,11 @@ export const useAbsenOtomatis = () => {
 
       if (sudahAdaMark) return // sudah ada tanda apapun, skip
 
-      // Belum ada jurnal & belum ada mark → tandai ALPHA ('x')
+      // Belum ada jurnal & belum ada mark → tandai ALPA ('x'):
+      // kolom "Jenis Kegiatan" bertuliskan Alpa, kolom absen menampilkan A
       await client.collection('absen').create({
         user: user.user.value.id,
-        uraian: 'Alpha — tidak mengisi jurnal PKL',
+        uraian: 'Alpa — tidak mengisi jurnal PKL',
         marks: { [String(hari)]: 'x' },
         bulan,
         tahun

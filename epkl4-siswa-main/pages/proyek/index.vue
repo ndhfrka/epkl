@@ -28,7 +28,7 @@
         <span><b class="lg lg-v">✓</b> Hadir</span>
         <span><b class="lg lg-s">S</b> Sakit</span>
         <span><b class="lg lg-i">I</b> Izin</span>
-        <span><b class="lg lg-x">✗</b> Alpa / Tidak masuk</span>
+        <span><b class="lg lg-x">A</b> Alpa / Tidak masuk</span>
       </div>
 
       <div class="agenda-paper">
@@ -83,7 +83,7 @@
                     </span>
                   </template>
                 </td>
-                <td v-for="h in jumlahHari" :key="a.id + '-' + h" class="col-hari cell-day" :class="a.marks[h] ? 'mark-' + a.marks[h] : ''" title="Klik: ✓ → S → I → ✗ → kosong" @click="toggleDay(a, h)">
+                <td v-for="h in jumlahHari" :key="a.id + '-' + h" class="col-hari cell-day" :class="a.marks[h] ? 'mark-' + a.marks[h] : ''" title="Klik: ✓ → S → I → A → kosong" @click="toggleDay(a, h)">
                   <span v-if="a.marks[h]">{{ markSymbol(a.marks[h]) }}</span>
                 </td>
               </tr>
@@ -191,10 +191,12 @@ async function getAbsen() {
   }
 }
 
-// ====== TANDA TANGGAL: ✓ hadir → S sakit → I izin → ✗ alpa → kosong ======
+// ====== TANDA TANGGAL: ✓ hadir → S sakit → I izin → A alpa → kosong ======
+// [FITUR ALPA] tanda otomatis dari tandaiAlphaOtomatis() adalah 'x' dan
+// ditampilkan sebagai huruf 'A' di kolom absen.
 const MARK_CYCLE = ['v', 's', 'i', 'x']
 function markSymbol(m) {
-  return { v: '✓', s: 'S', i: 'I', x: '✗' }[m] || ''
+  return { v: '✓', s: 'S', i: 'I', x: 'A' }[m] || ''
 }
 
 // ====== GEOFENCING ======
