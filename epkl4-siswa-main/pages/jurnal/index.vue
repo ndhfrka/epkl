@@ -223,7 +223,7 @@ let config = useRuntimeConfig()
 let host = config.public.apiBaseUrl + ":" + config.public.apiPort
 let user = usePocketBaseUser()
 let client = usePocketBaseClient()
-let { tandaiAbsenOtomatis } = useAbsenOtomatis()
+let { tandaiAbsenOtomatis, hapusAbsenOtomatis } = useAbsenOtomatis()
 const { cekPengingat } = usePengingat() // segarkan notif pengingat setelah jurnal diisi
 // Nilai AWAL / snapshot setup-level
 let isInstansi = (user.user.value?.role ?? '') === 'instansi'
@@ -342,7 +342,7 @@ async function getJurnalAgenda() {
       const d = parseAgendaDate(j.tanggal_agenda) || new Date(j.created)
       const hari = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d)
       const tanggal = `${hari}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
-      return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, _d: d }
+      return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, created: j.created || '', _d: d }
     })
   } catch (e) {
     jurnalAgenda.value = []
@@ -477,6 +477,14 @@ async function hapusJurnal(j) {
   client.autoCancellation(false)
   try {
     await client.collection('jurnal').delete(j.id)
+    // [SINKRONISASI ABSEN] baris absen otomatis dari kegiatan ini ikut dihapus:
+    // cocokkan baris absen yang uraiannya = deskripsi kegiatan, hapus tanda pada
+    // tanggal kegiatan tsb; jika tidak sisa tanda sama sekali, baris absen
+    // dihapus seluruhnya dari halaman absen.
+    const tglBuat = j.created
+      ? new Date(String(j.created).replace(' ', 'T'))
+      : (parseAgendaDate(j.tanggalAgenda) || null)
+    await hapusAbsenOtomatis(tglBuat, j.deskripsi)
     await getJurnalAgenda()
     cekPengingat(true) // jurnal dihapus → notif pengingat langsung diperiksa ulang
   } catch (e) {

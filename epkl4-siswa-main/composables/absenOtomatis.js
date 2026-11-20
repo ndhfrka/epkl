@@ -74,6 +74,53 @@ export const useAbsenOtomatis = () => {
   }
 
   /**
+   * Hapus jejak absen otomatis dari kegiatan jurnal yang dihapus siswa.
+   * Dipanggil dari halaman jurnal (hapusJurnal) supaya baris di halaman absen
+   * ikut terhapus — konsisten dengan tandaiAbsenOtomatis() yang membuat barisnya.
+   *
+   * Cara kerja:
+   * - Cocokkan baris absen milik user yang uraiannya = teks kegiatan jurnal.
+   * - Jika tanggal diketahui: cukup hapus tanda (✓) pada hari tanggal tersebut.
+   * - Jika setelah itu tidak ada tanda tersisa sama sekali → baris absen
+   *   dihapus seluruhnya (baris di halaman absen hilang).
+   * - Jika tanggal tidak diketahui: baris absen dengan uraian tsb dihapus langsung.
+   */
+  async function hapusAbsenOtomatis(tgl, teksKegiatan = '') {
+    try {
+      const teks = String(teksKegiatan || '').trim()
+      if (!teks || !user.user.value?.id) return
+      if (user.user.value.role === 'guru') return
+      client.autoCancellation(false)
+      const d = (tgl instanceof Date && !isNaN(tgl.getTime())) ? tgl : parseTanggalAgenda(tgl)
+      const filterBulanTahun = d ? ` && bulan=${d.getMonth() + 1} && tahun=${d.getFullYear()}` : ''
+      const existing = await client.collection('absen').getFullList({
+        filter: `user="${user.user.value.id}"${filterBulanTahun}`
+      })
+      let berubah = false
+      for (const rec of existing) {
+        if (String(rec.uraian || '').trim() !== teks) continue
+        if (!d) {
+          await client.collection('absen').delete(rec.id)
+          berubah = true
+          continue
+        }
+        const marks = (rec.marks && typeof rec.marks === 'object' && !Array.isArray(rec.marks)) ? { ...rec.marks } : {}
+        delete marks[String(d.getDate())]
+        const sisaMark = Object.values(marks).some(v => String(v ?? '').trim() !== '')
+        if (sisaMark) {
+          await client.collection('absen').update(rec.id, { marks })
+        } else {
+          await client.collection('absen').delete(rec.id)
+        }
+        berubah = true
+      }
+      if (berubah) refreshPengingat(true)
+    } catch (e) {
+      console.error('Gagal menghapus absen otomatis:', e)
+    }
+  }
+
+  /**
    * Tandai ALPHA otomatis pada hari ini jika siswa belum mengisi jurnal
    * dan sudah melewati JAM_BATAS_JURNAL (18.00 WIB).
    * Dipanggil oleh usePengingat tepat saat jam 18.00 atau saat app dibuka setelah jam tersebut.
@@ -140,5 +187,5 @@ export const useAbsenOtomatis = () => {
     }
   }
 
-  return { tandaiAbsenOtomatis, tandaiAlphaOtomatis }
+  return { tandaiAbsenOtomatis, hapusAbsenOtomatis, tandaiAlphaOtomatis }
 }
