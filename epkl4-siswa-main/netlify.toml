@@ -1,0 +1,36 @@
+# ============================================================
+# Konfigurasi deploy Netlify untuk e-PKL (frontend Nuxt 3 SPA)
+#
+# CARA PAKAI di dashboard Netlify:
+#   1. Add new site -> Import an existing project -> GitHub -> pilih repo
+#   2. Base directory        : epkl4-siswa-main
+#      Build command         : npm run generate   (sudah diatur di bawah)
+#      Publish directory     : .output/public     (sudah diatur di bawah)
+#   3. Site settings -> Environment variables, tambahkan:
+#        PB_API_BASE_URL = alamat PocketBase PUBLIK Anda
+#                          contoh: https://epkl-pb.example.com
+#        PB_API_PORT     = 443   (standar HTTPS)
+#      URL ini DI-BAK saat build, jadi kalau alamat PocketBase berubah,
+#      jalankan ulang deploy (Deploys -> Trigger deploy).
+#
+# CATATAN: Netlify hanya menjalankan FRONTEND (statis). PocketBase
+# (backend) tidak bisa berjalan di Netlify — jalankan di PC dengan
+# tunnel HTTPS (mis. cloudflared/ngrok) atau di VPS/hosting Node.
+# ============================================================
+
+[build]
+  command = "npm run generate"
+  publish = ".output/public"
+
+# SPA fallback: semua route yang tidak punya file HTML dilayani 200.html
+# (aplikasi memakai mode SPA ssr:false — navigasi ditangani Vue Router)
+[[redirects]]
+  from = "/*"
+  to = "/200.html"
+  status = 200
+
+# Cache aset build yang di-hash secara agresif
+[[headers]]
+  for = "/_nuxt/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
