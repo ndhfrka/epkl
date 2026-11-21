@@ -39,10 +39,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--md-sys-color-primary-container, #004a77);
-  color: var(--md-sys-color-on-primary-container, #d4e3ff);
+  /* [GANTI LOGO] Kotak logo tidak lagi biru (primary-container):
+     dipilih hijau lembut gradasi agar selaras dengan warna dominan
+     logo SMK AL-FATAH (hijau #60a848 + emas #f0d818) dan tetap
+     hangat di samping aksen biru aplikasi e-PKL. */
+  background: linear-gradient(150deg, #f0f7ea 0%, #ddefd2 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(96, 168, 72, 0.35),
+    var(--m3-elevation-level-2, 0 6px 16px rgba(0, 0, 0, 0.3));
   border-radius: 32px;
-  box-shadow: var(--m3-elevation-level-2, 0 6px 16px rgba(0,0,0,0.3));
 }
 .m3-login-header__avatar {
   width: 68px;
@@ -51,10 +56,11 @@
   align-items: center;
   justify-content: center;
   border-radius: 24px;
-  /* [GANTI LOGO] kapsul putih agar logo sekolah (latar transparan,
-     warna kuning/hijau/biru) selalu kontras di tema gelap & terang */
+  /* [GANTI LOGO] kapsul putih di atas kotak hijau lembut agar artwork
+     logo sekolah (latar transparan) selalu tajam & kontras di tema
+     gelap maupun terang; cincin hijau tipis menyatu dengan kotak */
   background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(96, 168, 72, 0.22);
 }
 .m3-login-header__logo-img {
   width: 56px;
