@@ -159,6 +159,13 @@ export default defineNuxtConfig({
         //  Socket selalu "segar", tidak ada idle, TIDAK ADA error.
         // ========================================================================
       ],
+      style: [
+        // [KUNCI WARNA KERTAS AGENDA - INLINE DI HEAD]
+        // Dipasang langsung pada dokumen (bukan modul CSS) supaya tampilan kertas
+        // agenda jurnal SELALU terbaca — gelap pada kertas putih, thead abu-abu —
+        // walau stylesheet halaman/modul gagal dimuat atau tertunda.
+        { innerHTML: `html .agenda-paper,html .agenda-paper .agenda-title,html .agenda-paper .agenda-subtitle,html .agenda-paper .agenda-info-label,html .agenda-paper .agenda-info-colon,html .agenda-paper .agenda-info-value,html .agenda-paper .info-text,html .agenda-paper .info-empty,html .agenda-paper .agenda-table,html .agenda-paper .agenda-table th,html .agenda-paper .agenda-table td{color:#111827!important}html .agenda-paper{background:#ffffff!important}html .agenda-paper .agenda-info-value{border-bottom-color:#6b7280!important}html .agenda-paper .agenda-table th,html .agenda-paper .agenda-table td{border-color:#374151!important}html .agenda-paper .agenda-table thead th{background-color:#e5e7eb!important;border-color:#111827!important}` }
+      ],
       script: [
         // ========================================================================
         //  CLEANUP SERVICE WORKER — SANGAT AGRESSIF

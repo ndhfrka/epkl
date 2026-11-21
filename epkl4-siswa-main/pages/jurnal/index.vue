@@ -298,7 +298,11 @@ let opsiFilterElemen = ref('')
 
 // ====== AGENDA HARIAN PKL ======
 let viewMode = ref('agenda')
-let filterBulan = ref(new Date().getMonth() + 1)
+// [FIX JURNAL TIDAK TAMPIL SETELAH LOGIN] default "Semua Bulan" (0).
+//  Sebelumnya default bulan berjalan: data di luar bulan itu (mis. data
+//  Oktober dilihat pada November) tidak tampil sampai filter diubah —
+//  kelihatannya seperti "jurnal hilang" setelah login.
+let filterBulan = ref(0)
 let filterTahun = ref(new Date().getFullYear())
 let bulanList = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 let tahunList = []
