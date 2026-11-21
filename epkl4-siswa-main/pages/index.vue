@@ -2845,41 +2845,49 @@ onMounted(async () => {
 
 .recap-card__grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
 }
 
+/* [PERBAIKAN REKAP] chip statistik dirapikan: latar tint lebih jelas,
+   garis netral tipis dihapus (penyebab sambungan "retak" antar kotak),
+   jarak vertikal konsisten lewat flex gap, teks lebih terbaca */
 .recap-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 4px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 2px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
 }
 
 .recap-stat__icon {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 800;
-  margin-bottom: 2px;
+  line-height: 1;
 }
 
 .recap-stat__label {
-  font-size: 0.68rem;
-  color: #94a3b8;
-  margin-bottom: 2px;
+  font-size: 0.66rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #9fb0c8;
 }
 
 .recap-stat__value {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 800;
+  line-height: 1;
   color: #ffffff;
 }
 
 .recap-stat--success {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.35);
 }
 .recap-stat--success .recap-stat__icon,
 .recap-stat--success .recap-stat__value {
@@ -2887,8 +2895,8 @@ onMounted(async () => {
 }
 
 .recap-stat--warning {
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.35);
 }
 .recap-stat--warning .recap-stat__icon,
 .recap-stat--warning .recap-stat__value {
@@ -2896,8 +2904,8 @@ onMounted(async () => {
 }
 
 .recap-stat--info {
-  background: rgba(6, 182, 212, 0.08);
-  border-color: rgba(6, 182, 212, 0.2);
+  background: rgba(6, 182, 212, 0.14);
+  border-color: rgba(6, 182, 212, 0.35);
 }
 .recap-stat--info .recap-stat__icon,
 .recap-stat--info .recap-stat__value {
@@ -2905,8 +2913,8 @@ onMounted(async () => {
 }
 
 .recap-stat--danger {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 .recap-stat--danger .recap-stat__icon,
 .recap-stat--danger .recap-stat__value {
@@ -2914,8 +2922,8 @@ onMounted(async () => {
 }
 
 .recap-stat--secondary {
-  background: rgba(148, 163, 184, 0.08);
-  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(148, 163, 184, 0.32);
 }
 .recap-stat--secondary .recap-stat__icon,
 .recap-stat--secondary .recap-stat__value {
@@ -3117,12 +3125,13 @@ onMounted(async () => {
     padding: 2px 7px;
   }
   .recap-card__grid {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
   }
   .recap-stat {
-    padding: 6px 2px;
-    border-radius: 8px;
+    padding: 8px 2px;
+    border-radius: 10px;
+    gap: 3px;
   }
   .recap-stat__value {
     font-size: 0.95rem;
@@ -3131,7 +3140,7 @@ onMounted(async () => {
     font-size: 0.6rem;
   }
   .recap-stat__icon {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   /* Modal Hari PKL */
