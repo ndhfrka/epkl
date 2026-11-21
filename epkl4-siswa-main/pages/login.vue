@@ -6,6 +6,11 @@
           <label for="username" class="m3-text-field__label">Email / Username</label>
           <div class="m3-text-field__wrap">
             <i class="bi bi-person-circle m3-text-field__icon"></i>
+            <!-- [PERBAIKAN AUTOFILL] saran kredensial Chrome di-tiadakan:
+                 di tampilan mobile dropdown "akun tersimpan" Chrome muncul
+                 menimpa kolom password tanpa panel (menyatu dengan latar
+                 gelap) sehingga terlihat seperti tulisan error melayang.
+                 Menyimpan sandi di Chrome tetap bisa lewat ikon address bar. -->
             <input
               id="username"
               v-model="username"
@@ -13,7 +18,7 @@
               class="m3-text-field__input"
               placeholder="Masukkan email atau username"
               :disabled="sending"
-              autocomplete="username"
+              autocomplete="off"
               required
               autofocus
             />
@@ -31,7 +36,7 @@
               class="m3-text-field__input"
               placeholder="Masukkan password"
               :disabled="sending"
-              autocomplete="current-password"
+              autocomplete="new-password"
               required
               @keyup.enter="$el.submit()"
             />
