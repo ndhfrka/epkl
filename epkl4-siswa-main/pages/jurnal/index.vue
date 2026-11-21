@@ -286,22 +286,6 @@ async function getDipantauId() {
   dipantauCache = { userId: uid, id: hasil || '' } // '' = sudah dicek, memang tidak ada
   return hasil
 }
-// [FIX JURNAL KOSONG SAAT NAVIGASI] muat ulang otomatis begitu identitas
-// user siap/berubah. Saat berpindah halaman (SPA), keadaan user bisa saja
-// belum siap saat komponen dibuat; tanpa watch ini datanya tetap kosong
-// sampai user me-refresh halaman secara manual.
-let loadedForUserId = null
-watch(() => user.user.value?.id || null, (uid) => {
-  if (!uid || uid === loadedForUserId) return
-  loadedForUserId = uid
-  dipantauCache = { userId: '', id: null }
-  isInstansi = (user.user.value?.role ?? '') === 'instansi'
-  isGuru = (user.user.value?.role ?? '') === 'guru'
-  prokel = user.user.value?.program_keahlian ?? ''
-  if (form.value && !form.value.siswa) form.value.siswa = uid
-  getJournals()
-  getJurnalAgenda()
-}, { immediate: true })
 let isMovingPage = ref(false)
 let havePostJournalToday = ref(false)
 let today = useServerDay()
@@ -1140,6 +1124,23 @@ async function getKomentarByIdJurnal(journal) {
     pratinjauKomentar.value.created = new Intl.DateTimeFormat('id-ID', options).format(date);
   }
 }
+
+// [FIX JURNAL KOSONG SAAT NAVIGASI] muat ulang otomatis begitu identitas
+// user siap/berubah. Saat berpindah halaman (SPA), keadaan user bisa saja
+// belum siap saat komponen dibuat; tanpa watch ini datanya tetap kosong
+// sampai user me-refresh halaman secara manual.
+let loadedForUserId = null
+watch(() => user.user.value?.id || null, (uid) => {
+  if (!uid || uid === loadedForUserId) return
+  loadedForUserId = uid
+  dipantauCache = { userId: '', id: null }
+  isInstansi = (user.user.value?.role ?? '') === 'instansi'
+  isGuru = (user.user.value?.role ?? '') === 'guru'
+  prokel = user.user.value?.program_keahlian ?? ''
+  if (form.value && !form.value.siswa) form.value.siswa = uid
+  getJournals()
+  getJurnalAgenda()
+}, { immediate: true })
 
 onMounted(() => {
   getElemenCp()
