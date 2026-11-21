@@ -30,25 +30,25 @@
         <div class="row g-2 g-md-3 mb-4">
           <div class="col-6 col-md-3">
             <div class="stat-box stat-box--pending p-3 rounded-3 text-center">
-              <div class="stat-number text-warning fw-bold fs-3">{{ statPending }}</div>
+              <div class="stat-number stat-num stat-num--pending fw-bold fs-3">{{ statPending }}</div>
               <div class="stat-label small text-secondary">Menunggu Validasi</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="stat-box stat-box--valid p-3 rounded-3 text-center">
-              <div class="stat-number text-success fw-bold fs-3">{{ statValid }}</div>
+              <div class="stat-number stat-num stat-num--valid fw-bold fs-3">{{ statValid }}</div>
               <div class="stat-label small text-secondary">Sudah Tervalidasi</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="stat-box stat-box--total p-3 rounded-3 text-center">
-              <div class="stat-number text-info fw-bold fs-3">{{ filteredJurnals.length }}</div>
+              <div class="stat-number stat-num stat-num--total fw-bold fs-3">{{ filteredJurnals.length }}</div>
               <div class="stat-label small text-secondary">Total Tampil</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="stat-box stat-box--jurusan p-3 rounded-3 text-center">
-              <div class="stat-number text-white fw-bold fs-5 pt-1 text-truncate">{{ activeJurusanNama || 'Semua Jurusan' }}</div>
+              <div class="stat-number stat-number-jurusan fw-bold fs-5 pt-1 text-truncate">{{ activeJurusanNama || 'Semua Jurusan' }}</div>
               <div class="stat-label small text-secondary">Jurusan Aktif</div>
             </div>
           </div>
@@ -91,11 +91,11 @@
         <!-- Filter Status & Pencarian -->
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <!-- Filter Status Validasi -->
-          <div class="btn-group btn-group-sm rounded-pill p-1 bg-dark border border-secondary border-opacity-25" role="group">
+          <div class="btn-group btn-group-sm rounded-pill p-1 filter-group" role="group">
             <button
               type="button"
               class="btn rounded-pill px-3 py-1"
-              :class="filterStatus === 'pending' ? 'btn-warning text-dark fw-bold' : 'btn-outline-dark text-secondary border-0'"
+              :class="filterStatus === 'pending' ? 'btn-warning text-dark fw-bold' : 'btn-tab'"
               @click="filterStatus = 'pending'"
             >
               <i class="bi bi-clock-history me-1"></i> Menunggu Validasi ({{ statPending }})
@@ -103,7 +103,7 @@
             <button
               type="button"
               class="btn rounded-pill px-3 py-1"
-              :class="filterStatus === 'valid' ? 'btn-success text-white fw-bold' : 'btn-outline-dark text-secondary border-0'"
+              :class="filterStatus === 'valid' ? 'btn-success text-white fw-bold' : 'btn-tab'"
               @click="filterStatus = 'valid'"
             >
               <i class="bi bi-check-circle-fill me-1"></i> Sudah Tervalidasi ({{ statValid }})
@@ -111,7 +111,7 @@
             <button
               type="button"
               class="btn rounded-pill px-3 py-1"
-              :class="filterStatus === 'all' ? 'btn-primary text-white fw-bold' : 'btn-outline-dark text-secondary border-0'"
+              :class="filterStatus === 'all' ? 'btn-primary text-white fw-bold' : 'btn-tab'"
               @click="filterStatus = 'all'"
             >
               Semua
@@ -145,13 +145,13 @@
         <!-- Input Pencarian Cepat -->
         <div class="mb-4">
           <div class="input-group input-group-sm">
-            <span class="input-group-text bg-dark border-secondary border-opacity-25 text-secondary">
+            <span class="input-group-text search-addon">
               <i class="bi bi-search"></i>
             </span>
             <input
               v-model="searchQuery"
               type="text"
-              class="form-control bg-dark border-secondary border-opacity-25 text-white"
+              class="form-control search-input"
               placeholder="Cari nama siswa, NIS, atau tempat PKL/IDUKA..."
             />
             <button v-if="searchQuery" class="btn btn-outline-secondary" @click="searchQuery = ''">
@@ -173,7 +173,7 @@
           <div class="empty-state-icon fs-1 text-secondary mb-2">
             <i class="bi bi-journal-x"></i>
           </div>
-          <h5 class="text-white mb-1">Tidak Ada Jurnal</h5>
+          <h5 class="empty-title mb-1">Tidak Ada Jurnal</h5>
           <p class="text-secondary small mb-3">
             {{ filterStatus === 'pending'
               ? 'Seluruh jurnal untuk jurusan yang dipilih sudah tervalidasi atau belum ada yang diajukan.'
@@ -204,7 +204,7 @@
                     {{ (jurnal.siswaNama || 'S').charAt(0).toUpperCase() }}
                   </div>
                   <div class="min-w-0">
-                    <div class="fw-bold text-white text-truncate fs-6" :title="jurnal.siswaNama">{{ jurnal.siswaNama }}</div>
+                    <div class="fw-bold siswa-nama text-truncate fs-6" :title="jurnal.siswaNama">{{ jurnal.siswaNama }}</div>
                     <div v-if="jurnal.siswaNis" class="text-secondary small text-truncate">NIS: {{ jurnal.siswaNis }}</div>
                   </div>
                 </div>
@@ -237,7 +237,7 @@
                   </span>
                 </div>
                 <div class="journal-deskripsi p-2 px-3 rounded-2">
-                  <div class="text-white pre-text">{{ jurnal.deskripsi }}</div>
+                  <div class="pre-text">{{ jurnal.deskripsi }}</div>
                 </div>
               </div>
 
@@ -304,7 +304,7 @@
                     {{ (jurnal.siswaNama || 'S').charAt(0).toUpperCase() }}
                   </div>
                   <div class="min-w-0">
-                    <div class="fw-bold text-white text-truncate">{{ jurnal.siswaNama }}</div>
+                    <div class="fw-bold siswa-nama text-truncate">{{ jurnal.siswaNama }}</div>
                     <div class="text-secondary small text-truncate">
                       <i class="bi bi-buildings text-primary me-1"></i>{{ jurnal.idukaNama || 'IDUKA' }}
                     </div>
@@ -344,7 +344,7 @@
                 <div class="small text-secondary fw-semibold mb-1">
                   <i class="bi bi-pencil-square me-1 text-primary"></i> Uraian Kegiatan:
                 </div>
-                <div class="text-white pre-text">{{ jurnal.deskripsi }}</div>
+                <div class="pre-text">{{ jurnal.deskripsi }}</div>
               </div>
 
               <!-- Metadata & Foto Mobile -->
@@ -682,21 +682,26 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* ============================================================
+   TEMA-AWARE (terang & gelap, desktop & mobile)
+   Semua warna memakai variabel tema var(--md-sys-color-*)
+   sehingga selaras dengan halaman lain di kedua mode.
+   ============================================================ */
+
 .validasi-wrapper {
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .modern-card {
-  background: rgba(13, 20, 36, 0.88) !important;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: var(--md-sys-color-surface-container, #0d1424) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e) !important;
   border-radius: 20px !important;
 }
 
 .modern-card__header {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant, #43474e);
   padding: 16px 20px;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
@@ -717,45 +722,53 @@ onBeforeUnmount(() => {
 .header-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--md-sys-color-on-surface, #e2e8f0);
 }
 
 .header-subtitle {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
 }
 
 .server-time-badge {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--md-sys-color-surface-container-high, #18213a);
   border: 1px solid rgba(59, 130, 246, 0.25);
+  transition: background-color 0.25s ease;
 }
 
+/* ===== KARTU STATISTIK ===== */
 .stat-box {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: transform 0.2s ease;
+  background: var(--md-sys-color-surface-container-high, #18213a);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
+  transition: transform 0.2s ease, background-color 0.25s ease;
 }
 .stat-box:hover {
   transform: translateY(-2px);
 }
-.stat-box--pending { border-color: rgba(234, 179, 8, 0.3); }
-.stat-box--valid { border-color: rgba(34, 197, 94, 0.3); }
-.stat-box--total { border-color: rgba(56, 189, 248, 0.3); }
+.stat-box--pending { border-color: rgba(234, 179, 8, 0.45); }
+.stat-box--valid { border-color: rgba(34, 197, 94, 0.45); }
+.stat-box--total { border-color: rgba(56, 189, 248, 0.45); }
 
-/* Tombol Jurusan */
+.stat-num--pending { color: var(--md-sys-color-warning, #facc15); }
+.stat-num--valid { color: var(--md-sys-color-success, #22c55e); }
+.stat-num--total { color: #38bdf8; }
+.stat-number-jurusan { color: var(--md-sys-color-on-surface, #e2e8f0); }
+
+/* ===== TOMBOL PILIH JURUSAN ===== */
 .btn-jurusan {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: var(--md-sys-color-surface-container-high, #18213a);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
   border-radius: 999px;
   padding: 6px 16px;
   font-size: 0.85rem;
   font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease;
 }
 .btn-jurusan:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--md-sys-color-on-surface, #e2e8f0);
+  background: var(--md-sys-color-surface-container-highest, #232d4a);
 }
 .btn-jurusan--active {
   background: #2563eb !important;
@@ -776,21 +789,70 @@ onBeforeUnmount(() => {
   border-color: #22c55e !important;
 }
 
-/* Kartu Jurnal */
+/* ===== GRUP FILTER STATUS & TAB ===== */
+.filter-group {
+  background: var(--md-sys-color-surface-container-high, #18213a);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
+}
+.btn-tab {
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
+  border: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.btn-tab:hover {
+  color: var(--md-sys-color-on-surface, #e2e8f0);
+}
+
+/* ===== PENCARIAN ===== */
+.search-addon {
+  background: var(--md-sys-color-surface-container-high, #18213a) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e) !important;
+  border-right: none !important;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2) !important;
+}
+.search-input {
+  background: var(--md-sys-color-surface-container-high, #18213a) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e) !important;
+  color: var(--md-sys-color-on-surface, #e2e8f0) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.search-input::placeholder {
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
+  opacity: 1;
+}
+.search-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  background: var(--md-sys-color-surface-container-high, #18213a);
+  transition: background-color 0.25s ease;
+}
+.empty-state-icon { color: var(--md-sys-color-on-surface-variant, #c3c7d2); }
+.empty-title { color: var(--md-sys-color-on-surface, #e2e8f0); }
+
+/* ===== KARTU JURNAL ===== */
 .journal-card {
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--md-sys-color-surface-container-high, #18213a);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
   transition: all 0.2s ease;
 }
 .journal-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(59, 130, 246, 0.4);
+  background: var(--md-sys-color-surface-container-highest, #232d4a);
 }
 .journal-card--pending {
   border-left: 4px solid #eab308 !important;
 }
 .journal-card--valid {
   border-left: 4px solid #22c55e !important;
+}
+
+.siswa-nama {
+  color: var(--md-sys-color-on-surface, #e2e8f0);
 }
 
 .student-avatar {
@@ -805,8 +867,9 @@ onBeforeUnmount(() => {
 }
 
 .journal-deskripsi {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--md-sys-color-surface-container-lowest, #020409);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
+  transition: background-color 0.25s ease;
 }
 
 .pre-text {
@@ -814,9 +877,10 @@ onBeforeUnmount(() => {
   word-break: break-word;
   font-size: 0.92rem;
   line-height: 1.5;
+  color: var(--md-sys-color-on-surface, #e2e8f0);
 }
 
-/* Thumbnail Foto */
+/* ===== THUMBNAIL FOTO ===== */
 .foto-thumb-box {
   position: relative;
   width: 90px;
@@ -824,8 +888,9 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
   background: #000;
+  -webkit-tap-highlight-color: transparent;
 }
 .foto-thumb {
   width: 100%;
@@ -850,13 +915,13 @@ onBeforeUnmount(() => {
 .no-foto-box {
   width: 90px;
   height: 68px;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  background: var(--md-sys-color-surface-container-highest, #232d4a);
+  border: 1px dashed var(--md-sys-color-outline-variant, #43474e);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
 }
 
 .btn-action-val {
@@ -873,7 +938,8 @@ onBeforeUnmount(() => {
   to { transform: rotate(360deg); }
 }
 
-/* Modal Zoom */
+/* ===== MODAL ZOOM FOTO ===== */
+/* Penampil foto tetap gelap di kedua tema (standar penampil gambar) */
 .modal-zoom-overlay {
   position: fixed;
   inset: 0;
@@ -884,6 +950,11 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   padding: 16px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .modal-zoom-content {
   max-width: 90vw;
@@ -892,10 +963,24 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 16px;
+  animation: modalScaleIn 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes modalScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 .modal-zoom-img {
   max-width: 100%;
   max-height: 70vh;
   object-fit: contain;
+}
+
+/* Hormati preferensi kurangi-gerakan */
+@media (prefers-reduced-motion: reduce) {
+  .stat-box, .journal-card, .foto-thumb, .modal-zoom-content, .modal-zoom-overlay,
+  .btn-jurusan, .server-time-badge, .filter-group, .search-input {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 </style>

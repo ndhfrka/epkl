@@ -83,7 +83,7 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="text-center py-5">
       <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
-      <div class="text-white fw-semibold">Memuat Galeri Foto Dokumentasi...</div>
+      <div class="loading-text fw-semibold">Memuat Galeri Foto Dokumentasi...</div>
       <div class="small text-secondary mt-1">Menyinkronkan data jurnal dan berkas foto</div>
     </div>
 
@@ -152,7 +152,7 @@
       <div class="empty-galeri-icon mb-3">
         <i class="bi bi-camera"></i>
       </div>
-      <h3 class="text-white fw-bold fs-5 mb-1">Belum Ada Foto Kegiatan</h3>
+      <h3 class="empty-title fw-bold fs-5 mb-1">Belum Ada Foto Kegiatan</h3>
       <p class="text-secondary small mb-3" style="max-width: 480px; margin: 0 auto;">
         {{ isGuru 
           ? 'Belum ada siswa jurusan ' + (currentJurusanNama || 'ini') + ' yang mengunggah foto dokumentasi kegiatan pada jurnal mereka.' 
@@ -187,7 +187,7 @@
                 <i class="bi bi-person-fill"></i>
               </div>
               <div>
-                <h4 class="text-white fw-bold mb-0 fs-5">{{ lightboxItem.siswaNama }}</h4>
+                <h4 class="lb-nama fw-bold mb-0 fs-5">{{ lightboxItem.siswaNama }}</h4>
                 <div class="small text-secondary">
                   <span>{{ lightboxItem.siswaKelas }}</span> &bull; 
                   <span class="text-primary fw-semibold">{{ lightboxItem.jurusanNama }}</span>
@@ -198,19 +198,19 @@
             <!-- Meta Penempatan -->
             <div class="mb-3">
               <div class="small text-secondary fw-semibold mb-1"><i class="bi bi-buildings-fill text-primary me-1"></i> Lokasi Tempat PKL:</div>
-              <div class="text-white fw-bold">{{ lightboxItem.idukaNama || 'Belum Diatur' }}</div>
+              <div class="lb-val fw-bold">{{ lightboxItem.idukaNama || 'Belum Diatur' }}</div>
             </div>
 
             <!-- Meta Tanggal -->
             <div class="mb-3">
               <div class="small text-secondary fw-semibold mb-1"><i class="bi bi-calendar3 text-primary me-1"></i> Tanggal Dokumentasi:</div>
-              <div class="text-white">{{ lightboxItem.tanggalTampil }}</div>
+              <div class="lb-val">{{ lightboxItem.tanggalTampil }}</div>
             </div>
 
             <!-- Keterangan / Deskripsi Kegiatan -->
             <div class="mb-4">
               <div class="small text-secondary fw-semibold mb-1"><i class="bi bi-journal-text text-primary me-1"></i> Uraian Kegiatan Siswa:</div>
-              <div class="lightbox-desc-box p-3 rounded-3 text-white-50">
+              <div class="lightbox-desc-box p-3 rounded-3">
                 {{ lightboxItem.deskripsi }}
               </div>
             </div>
@@ -237,11 +237,11 @@
 
   <!-- Akses Ditolak untuk Siswa -->
   <div v-else class="container py-5 text-center text-white min-vh-100 d-flex align-items-center justify-content-center">
-    <div class="card bg-dark border border-secondary border-opacity-25 p-5 mx-auto shadow-lg" style="max-width: 480px; border-radius: 1.5rem; background: rgba(15, 23, 42, 0.9) !important; backdrop-filter: blur(12px);">
+    <div class="card akses-card border border-secondary border-opacity-25 p-5 mx-auto shadow-lg" style="max-width: 480px; border-radius: 1.5rem;">
       <div class="mb-3 text-warning" style="font-size: 3.5rem;">
         <i class="bi bi-shield-lock-fill"></i>
       </div>
-      <h3 class="fw-bold text-white mb-2">Akses Terbatas</h3>
+      <h3 class="fw-bold akses-title mb-2">Akses Terbatas</h3>
       <p class="text-secondary mb-4 small">
         Halaman Galeri Foto PKL hanya dapat diakses oleh akun Guru Pembimbing dan Admin. Siswa tidak memiliki izin untuk mengakses halaman ini.
       </p>
@@ -458,14 +458,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ============================================================
+   TEMA-AWARE (terang & gelap, desktop & mobile)
+   Semua warna memakai variabel tema var(--md-sys-color-*)
+   sehingga selaras dengan halaman lain di kedua mode.
+   ============================================================ */
+
 .galeri-page-wrapper {
   padding-bottom: 3rem;
 }
 
 .modern-card {
-  background: rgba(15, 23, 42, 0.85) !important;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: var(--md-sys-color-surface-container, #0d1424) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e) !important;
   border-radius: 20px !important;
   overflow: hidden;
 }
@@ -481,18 +486,19 @@ onMounted(() => {
   justify-content: center;
   font-size: 1.45rem;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  flex-shrink: 0;
 }
 
 .galeri-title {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--md-sys-color-on-surface, #e2e8f0);
   letter-spacing: -0.01em;
 }
 
 .galeri-subtitle {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
 }
 
 .badge-jurusan {
@@ -525,18 +531,36 @@ onMounted(() => {
   border-radius: 999px;
 }
 
+/* Tema terang: badge purple & hijau perlu teks lebih gelap agar terbaca */
+:global(html[data-tema='terang']) .badge-admin {
+  color: #6d28d9 !important;
+  background: rgba(139, 92, 246, 0.14) !important;
+}
+:global(html[data-tema='terang']) .badge-siswa {
+  color: #047857 !important;
+  background: rgba(16, 185, 129, 0.14) !important;
+}
+
+/* ===== PENCARIAN & FILTER ===== */
 .search-addon {
-  background: rgba(11, 18, 33, 0.9) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: var(--md-sys-color-surface-container-high, #18213a) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e) !important;
   border-right: none !important;
-  color: #94a3b8 !important;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2) !important;
+  transition: background-color 0.25s ease;
 }
 
 .modern-input, .modern-select {
-  background: rgba(11, 18, 33, 0.9) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  color: #f1f5f9 !important;
+  background: var(--md-sys-color-surface-container-high, #18213a) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e) !important;
+  color: var(--md-sys-color-on-surface, #e2e8f0) !important;
   border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modern-input::placeholder {
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
+  opacity: 1;
 }
 
 .modern-input:focus, .modern-select:focus {
@@ -544,11 +568,22 @@ onMounted(() => {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
 }
 
+/* ===== LOADING & EMPTY STATE ===== */
+.loading-text {
+  color: var(--md-sys-color-on-surface, #e2e8f0);
+}
+.empty-title {
+  color: var(--md-sys-color-on-surface, #e2e8f0);
+}
+.empty-galeri-icon {
+  font-size: 3rem;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
+}
+
 /* ========== CARD GALERI FOTO ========== */
 .galeri-card {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--md-sys-color-surface-container-high, #18213a);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
   border-radius: 18px;
   overflow: hidden;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -556,12 +591,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .galeri-card:hover {
   transform: translateY(-4px);
   border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.35) !important;
 }
 
 .galeri-card__img-box {
@@ -608,6 +644,7 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Badge di atas foto tetap gelap (latar foto) */
 .img-badge-jurusan {
   position: absolute;
   top: 10px;
@@ -638,6 +675,7 @@ onMounted(() => {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.25s ease;
 }
 
 .student-avatar-mini {
@@ -656,19 +694,19 @@ onMounted(() => {
 .student-name {
   font-size: 0.92rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--md-sys-color-on-surface, #e2e8f0);
 }
 
 .student-class {
   font-size: 0.72rem;
-  color: #94a3b8;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
 }
 
 .iduka-pill {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #93c5fd;
-  background: rgba(59, 130, 246, 0.1);
+  color: var(--md-sys-color-primary, #60a5fa);
+  background: rgba(59, 130, 246, 0.12);
   padding: 3px 8px;
   border-radius: 6px;
   display: inline-block;
@@ -677,17 +715,12 @@ onMounted(() => {
 
 .galeri-card__desc {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.45;
-}
-
-.empty-galeri-icon {
-  font-size: 3rem;
-  color: #64748b;
 }
 
 .spin-anim {
@@ -699,7 +732,7 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
-/* ========== LIGHTBOX MODAL ========== */
+/* ========== LIGHTBOX MODAL (PERBESAR FOTO) ========== */
 .lightbox-overlay {
   position: fixed;
   inset: 0;
@@ -713,10 +746,10 @@ onMounted(() => {
 }
 
 .lightbox-dialog {
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--md-sys-color-surface-container-low, #0a1120);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
   border-radius: 24px;
-  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.95);
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.55);
   max-width: 950px;
   width: 100%;
   max-height: 90vh;
@@ -735,6 +768,7 @@ onMounted(() => {
   max-height: 90vh;
 }
 
+/* Area foto tetap hitam di kedua tema (standar penampil foto) */
 .lightbox-image-pane {
   background: #000;
   position: relative;
@@ -779,6 +813,17 @@ onMounted(() => {
   flex-direction: column;
   overflow-y: auto;
   max-height: 90vh;
+  color: var(--md-sys-color-on-surface, #e2e8f0);
+  transition: background-color 0.25s ease;
+}
+
+.lb-nama {
+  color: var(--md-sys-color-on-surface, #e2e8f0) !important;
+}
+
+.lb-val {
+  color: var(--md-sys-color-on-surface, #e2e8f0) !important;
+  font-weight: 700;
 }
 
 .lightbox-avatar {
@@ -795,12 +840,21 @@ onMounted(() => {
 }
 
 .lightbox-desc-box {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--md-sys-color-surface-container-high, #18213a);
+  border: 1px solid var(--md-sys-color-outline-variant, #43474e);
+  color: var(--md-sys-color-on-surface-variant, #c3c7d2) !important;
   font-size: 0.85rem;
   line-height: 1.6;
   max-height: 220px;
   overflow-y: auto;
+}
+
+/* ===== KARTU AKSES TERBATAS (siswa membuka URL langsung) ===== */
+.akses-card {
+  background: var(--md-sys-color-surface-container, #0d1424) !important;
+}
+.akses-title {
+  color: var(--md-sys-color-on-surface, #e2e8f0);
 }
 
 @media (max-width: 860px) {
@@ -811,6 +865,15 @@ onMounted(() => {
   }
   .lightbox-image-pane {
     max-height: 45vh;
+  }
+}
+
+/* Hormati preferensi kurangi-gerakan */
+@media (prefers-reduced-motion: reduce) {
+  .galeri-card, .galeri-card__img, .lightbox-dialog,
+  .btn-close-lightbox, .modern-input, .modern-select, .search-addon {
+    transition: none !important;
+    animation: none !important;
   }
 }
 </style>
