@@ -572,6 +572,113 @@ function hapusFoto() {
 }
 
 // ========================================================================
+//  GEOFENCE JURNAL: unggah hanya dari wilayah PKL siswa.
+//  Halaman ini tetap bisa dibuka dari mana saja; pembatasan hanya
+//  terjadi saat tombol kirim ditekan. Pengecualian: jika uraian
+//  kegiatan memuat kata "sakit" atau "izin", siswa tetap boleh
+//  mengunggah jurnal dari lokasi mana pun.
+// ========================================================================
+function adaKataSakitIzin(teks) {
+  return /\b(sakit|izin)\b/i.test(String(teks || ''))
+}
+
+function ekstrakKoordinatJurnal(url) {
+  if (!url) return ''
+  let m = String(url).match(/(-?\d{1,3}\.\d{4,})\s*,\s*(-?\d{1,3}\.\d{4,})/)
+  if (m) return `${m[1]},${m[2]}`
+  try {
+    const u = new URL(url)
+    const q = u.searchParams.get('q') || u.searchParams.get('query')
+    if (q) m = q.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/)
+  } catch {}
+  return m ? `${m[1]},${m[2]}` : ''
+}
+
+function hitungJarakJurnal(lat1, lon1, lat2, lon2) {
+  const R = 6371e3
+  const p1 = lat1 * Math.PI / 180
+  const p2 = lat2 * Math.PI / 180
+  const dp = (lat2 - lat1) * Math.PI / 180
+  const dl = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dp / 2) * Math.sin(dp / 2) +
+            Math.cos(p1) * Math.cos(p2) *
+            Math.sin(dl / 2) * Math.sin(dl / 2)
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+async function cekGeofencingJurnal() {
+  return new Promise(async (resolve) => {
+    try {
+      const idSaya = client.authStore?.model?.id
+      // Ambil hingga 10 record lokasi milik siswa ini - pilih yang pertama
+      // dengan koordinat valid (tahan terhadap record ganda/link rusak).
+      const res = await client.collection('lokasi_pkl').getList(1, 10, {
+        filter: `siswa="${idSaya}"`
+      })
+      if (!res.items || res.items.length === 0) {
+        alert('Anda belum mengatur Lokasi PKL. Silakan atur lokasi terlebih dahulu di menu Lokasi PKL. Jika hari ini Anda sakit atau izin, tuliskan kata "sakit" atau "izin" pada uraian kegiatan.')
+        resolve(false)
+        return
+      }
+
+      let koordinatPKL = ''
+      for (const rec of res.items) {
+        const k = ekstrakKoordinatJurnal(rec.link_maps)
+        if (k) { koordinatPKL = k; break }
+      }
+      if (!koordinatPKL) {
+        alert('Lokasi PKL Anda tidak memiliki koordinat valid. Perbarui link Google Maps di menu Lokasi PKL (pastikan formatnya mengandung koordinat).')
+        resolve(false)
+        return
+      }
+
+      const [latPKL, lonPKL] = koordinatPKL.split(',').map(Number)
+
+      if (!navigator.geolocation) {
+        alert('Geolocation tidak tersedia di browser ini. Penyebab paling umum: halaman dibuka lewat HTTP di luar localhost (mis. http://192.168.x.x:3001). Buka lewat http://localhost:3001 di komputer, atau gunakan HTTPS saat diakses dari HP/jaringan lain.')
+        resolve(false)
+        return
+      }
+
+      // Ambil posisi GPS; jika gagal dengan akurasi tinggi, coba sekali lagi
+      // dengan mode akurasi rendah (Wi-Fi/jaringan).
+      function ambilPosisi(opsi) {
+        return new Promise((res2, rej2) => navigator.geolocation.getCurrentPosition(res2, rej2, opsi))
+      }
+
+      let position = null
+      try {
+        position = await ambilPosisi({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })
+      } catch (err1) {
+        try {
+          position = await ambilPosisi({ enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 })
+        } catch (err2) {
+          const kode = (err2 && err2.code) || (err1 && err1.code)
+          let pesan = 'Gagal mendapatkan lokasi Anda. Pastikan Anda mengizinkan akses lokasi (GPS) pada browser/perangkat Anda.'
+          if (kode === 1) pesan = 'Akses lokasi DITOLAK. Izinkan akses lokasi untuk situs ini pada browser Anda (ketuk ikon gembok di address bar).'
+          else if (kode === 2) pesan = 'Lokasi tidak dapat ditentukan. Coba keluar ruangan / nyalakan GPS lalu coba lagi.'
+          else if (kode === 3) pesan = 'Waktu tunggu GPS habis. Coba lagi di tempat dengan sinyal lebih baik.'
+          alert(pesan)
+          resolve(false)
+          return
+        }
+      }
+
+      const jarak = hitungJarakJurnal(position.coords.latitude, position.coords.longitude, latPKL, lonPKL)
+      if (jarak > 100) {
+        alert(`Jurnal hanya dapat diunggah dari dalam wilayah PKL Anda (Jarak: ${Math.round(jarak)} meter dari lokasi PKL). Jika hari ini Anda sakit atau izin, tuliskan kata "sakit" atau "izin" pada uraian kegiatan lalu kirim kembali.`)
+        resolve(false)
+        return
+      }
+      resolve(true)
+    } catch (e) {
+      alert('Terjadi kesalahan saat memverifikasi lokasi untuk jurnal.')
+      resolve(false)
+    }
+  })
+}
+
+// ========================================================================
 //  SUBMIT JURNAL BARU (TEXT + FOTO VIA FORMDATA)
 // ========================================================================
 async function buatJurnalBaru(isDraft) {
@@ -588,6 +695,16 @@ async function buatJurnalBaru(isDraft) {
     const photoEl = document.querySelector('.photo-section')
     if (photoEl) photoEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
     return
+  }
+
+  // [GEOFENCE JURNAL] Unggah hanya boleh dari wilayah PKL siswa.
+  // Halaman tetap bisa dibuka dari mana saja; pembatasan hanya saat
+  // mengunggah. Pengecualian: uraian kegiatan memuat kata "sakit"
+  // atau "izin" (mis. hari ini kegiatannya izin/sakit) maka boleh
+  // diunggah dari lokasi mana pun.
+  if (!adaKataSakitIzin(form.value.deskripsi)) {
+    const dalamWilayah = await cekGeofencingJurnal()
+    if (!dalamWilayah) return
   }
 
   isPosting.value = true
