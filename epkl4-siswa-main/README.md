@@ -8,6 +8,9 @@ Aplikasi web peserta PKL untuk SMK (PPLG, TKR, AKL) — dibangun dengan [Nuxt 3]
 
 - **Jurnal Harian** — kegiatan + foto (auto-kompres & watermark), simpan draf, filter per Elemen
 - **Kehadiran (Absen)** — otomatis terisi dari kegiatan jurnal
+- **Satu Jurnal per Hari** — satu jurnal per tanggal; masih bisa diubah selama belum divalidasi guru
+- **Geofence Jurnal** — hanya bisa diisi dalam radius lokasi PKL (kecuali sakit/izin)
+- **Hari Libur Otomatis** — Minggu & hari libur otomatis bertanda "L" di tabel absen
 - **Nilai** — melihat nilai PKL (read-only); pengisian & pembaruan hanya oleh guru pembimbing / instansi
 - **Proyek / Self Project** — penyerahan proyek terpetakan dengan PKL & Guru Pembimbing
 - **IDUKA** — profil industri tempat PKL, pembimbing, dan pemetaan PKL

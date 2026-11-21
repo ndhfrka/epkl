@@ -12,10 +12,15 @@
 
 | Fitur | Keterangan |
 |---|---|
+| **Satu Jurnal per Hari** | Siswa hanya dapat meng-upload **satu jurnal per tanggal** — selama belum divalidasi guru, isian masih dapat diubah kembali melalui ikon pensil; setelah divalidasi terkunci |
+| **Geofence Jurnal** | Jurnal hanya bisa diisi saat siswa berada dalam radius **±100 meter** dari lokasi IDUKA — kecuali berstatus **Sakit/Izin** |
+| **Hari Libur Otomatis (L)** | Minggu & hari libur (daftar di `composables/hariLibur.js`) otomatis muncul sebagai baris bertanda **L** pada tabel absen |
+| **Urutan Tabel per Tanggal** | Baris jurnal & baris libur di halaman Proyek kini terurut **sesuai tanggal** — nomor urut 1, 2, 3, … tidak lagi melompat |
+| **Perbaikan Edit Nilai** | Akun **guru** & **instansi (IDUKA)** dapat mengedit nilai yang sudah terisi tanpa error — perbaikan API rules PocketBase (perbandingan `?=`) |
+| **Mode Terang Menyeluruh** | Halaman validasi, galeri, elemen, dashboard & modal pilih siswa konsisten pada mode terang; animasi pemilihan elemen lebih halus |
+| **Filter Absen Bulan Berjalan** | Tabel absen secara default menampilkan **bulan berjalan** |
 | **Kontrol Akses Nilai** | Nilai hanya dapat diisi/diperbarui oleh **guru pembimbing** atau **instansi (IDUKA)** — siswa hanya dapat melihat; dijaga di sisi UI maupun aturan akses (API rules) PocketBase |
 | **Perbaikan Jurnal SPA** | Jurnal & agenda tidak lagi kosong saat berpindah halaman tanpa refresh — data dimuat otomatis mengikuti identitas user yang masuk |
-| **Tampilan Terang Konsisten** | Kartu "Rekan Satu Tim PKL" di dashboard kini menyatu dengan kartu lain pada mode terang (mode gelap tidak berubah) |
-| **Logo Sekolah Lebih Jelas** | Logo pada halaman login & dashboard diperbesar (96×96) dengan tampilan bersih yang menyatu |
 | **Galeri Foto Kegiatan PKL** | Halaman galeri foto dokumentasi — guru melihat sesuai jurusan pembinaannya, admin melihat semua jurusan, siswa melihat dokumentasi sendiri |
 | **Waktu Server Resmi (WIB)** | Endpoint `server/api/server-time.get.ts` + composable `useServerTime` — mencegah manipulasi tanggal/jam dari perangkat siswa; indikator waktu server tampil di halaman validasi guru |
 | **Absen Otomatis dari Jurnal** | Setiap kegiatan jurnal yang di-upload otomatis menjadi baris absen (kolom "Jenis Kegiatan" + tanda ✓ pada tanggal terkait) |
@@ -123,7 +128,7 @@ Koleksi `nilai` dilindungi aturan akses: hanya **guru pembimbing** terkait atau 
 Riwayat lengkap ada di [`epkl4-siswa-main/CHANGELOG.md`](epkl4-siswa-main/CHANGELOG.md). Ringkasan:
 
 - **v3.0** (18 Agustus 2026) — major version, perbaikan semua fitur
-- **Pembaruan 21 November 2026** — kontrol akses nilai (guru & instansi), perbaikan jurnal SPA, konsistensi mode terang, polesan logo & login
+- **Pembaruan 21 November 2026** — satu jurnal per hari (bisa diedit selama belum divalidasi), geofence jurnal ±100 m, hari libur otomatis, urutan tabel per tanggal, perbaikan edit nilai guru & instansi, mode terang menyeluruh
 - **v2.10-rc** — pemisahan Guru Pembimbing dengan PIC Sekolah di IDUKA; jurnal & proyek wajib terpetakan
 - **v2.8** — fitur Self Project; navigasi elemen ke NavTop, proyek ke NavBottom
 - **v2.7** — konversi & kompresi foto jurnal otomatis; filter jurnal per Elemen
