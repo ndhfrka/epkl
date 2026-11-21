@@ -1231,6 +1231,59 @@ html[data-tema='terang'] .modal-siswa-card {
   border-color: rgba(15, 23, 42, 0.12);
 }
 
+/* [REVISI DASHBOARD - MODAL PILIH SISWA] Isi modal ikut terang:
+   judul, nama siswa, input cari, dan item daftar harus terbaca
+   jelas di tema terang (sebelumnya masih putih/gaya gelap). */
+html[data-tema='terang'] .modal-siswa-card h5.text-white {
+  color: #0f1729 !important;
+}
+html[data-tema='terang'] .modal-siswa-card .text-white {
+  color: #0f1729 !important;
+}
+/* Avatar dengan latar gradasi biru tetap memakai huruf putih */
+html[data-tema='terang'] .modal-siswa-card .modal-siswa-avatar.text-white {
+  color: #ffffff !important;
+}
+html[data-tema='terang'] .modal-siswa-card .text-secondary {
+  color: #475569 !important;
+}
+html[data-tema='terang'] .modal-siswa-card .input-group-text.bg-dark {
+  background-color: rgba(248, 250, 253, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  color: #475569 !important;
+}
+html[data-tema='terang'] .modal-siswa-card .form-control.bg-dark {
+  background-color: rgba(248, 250, 253, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  color: #0f1729 !important;
+  -webkit-text-fill-color: #0f1729 !important;
+}
+html[data-tema='terang'] .modal-siswa-card .form-control.bg-dark::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1;
+}
+html[data-tema='terang'] .modal-siswa-card .badge.bg-secondary-subtle {
+  background-color: rgba(15, 23, 42, 0.07) !important;
+  color: #475569 !important;
+}
+html[data-tema='terang'] .modal-siswa-card .modal-siswa-item {
+  background-color: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.09);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+html[data-tema='terang'] .modal-siswa-card .modal-siswa-item:hover {
+  background-color: rgba(59, 130, 246, 0.09);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+html[data-tema='terang'] .modal-siswa-card .modal-siswa-item--active {
+  background-color: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+html[data-tema='terang'] .modal-siswa-overlay {
+  background: rgba(15, 23, 42, 0.5);
+}
+
 html[data-tema='terang'] .bento-card--featured {
   background: linear-gradient(180deg, rgba(224, 231, 250, 0.55) 0%, rgba(243, 246, 251, 0.97) 100%);
   border-color: rgba(99, 102, 241, 0.45);
