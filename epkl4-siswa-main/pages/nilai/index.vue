@@ -13,10 +13,10 @@
         </div>
       </div>
       <div v-else>
-        <div v-if="isInstansi" class="row">
+        <div v-if="isPenilai" class="row">
           <div class="col-lg-12">
-            <p class="small text-muted">Penilaian PKL oleh instansi. Pilih nama peserta untuk mengisi atau memperbarui nilai.</p>
-            <div v-for="row in instansiRows" :key="row.siswa.id" class="card mb-2">
+            <p class="small text-muted">{{ isGuru ? 'Penilaian PKL oleh guru pembimbing. Pilih nama peserta untuk mengisi atau memperbarui nilai.' : 'Penilaian PKL oleh instansi. Pilih nama peserta untuk mengisi atau memperbarui nilai.' }}</p>
+            <div v-for="row in penilaiRows" :key="row.siswa.id" class="card mb-2">
               <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                   <div class="fw-bold">{{ row.siswa.nama }} <span class="text-muted small">{{ row.siswa.kelas?.startsWith('XII') ? row.siswa.kelas : 'XII.' + row.siswa.kelas }}</span></div>
@@ -29,7 +29,7 @@
                 <nuxt-link v-else :to="`/nilai/tambah?siswa=${row.siswa.id}`" class="btn btn-info btn-sm border border-2 border-dark"><i class="bi bi-upload"></i> Upload Nilai</nuxt-link>
               </div>
             </div>
-            <div v-if="!instansiRows.length" class="text-center fs-4 fw-bold text-muted py-5">
+            <div v-if="!penilaiRows.length" class="text-center fs-4 fw-bold text-muted py-5">
               <i class="bi bi-people fs-1"></i> <br> Belum ada data nilai
             </div>
           </div>
@@ -40,7 +40,10 @@
             <div v-else-if="!certificate.isValid" class="alert alert-warning small text-center">
               Nilai sedang proses validasi
             </div>
-            <form @submit.prevent="updateNilai">
+            <!-- [NILAI HANYA GURU/INSTANSI] Siswa hanya dapat MELIHAT nilai,
+                 tidak boleh mengedit/mengupload — sesuai kebijakan aplikasi
+                 dan aturan koleksi nilai di PocketBase. -->
+            <div>
               <div class="row">
                 <div class="col-lg-6">
                   <div class="mb-4">
@@ -65,68 +68,35 @@
                   <div class="mb-4">
                     <div class="text-muted fw-bold">Nilai Elemen 4</div>
                     <span class="fw-bold">{{ form.nilai_elemen4 }}</span>
-                    <!-- <input  type="number" min="0" max="100" id="el_wirausaha" class="form form-control" required> -->
                   </div>
-                  <!-- <div class="mb-4">
-                    <div class="fw-bold badge bg-info border border-1 border-dark">Total: {{ form.nilai_elemen1 + form.nilai_elemen2 + form.nilai_elemen3 + form.nilai_elemen4 }}</div>
-                  </div> -->
-                  <div v-if="$device.isMobile && !certificate.isValid" class="mb-4">
-                    <label for="fotonilai">Upload ulang halaman nilai?</label>
-                    <input @change="compressFile" class="form form-control" type="file" id="fotonilai" accept="image/*" capture="environment" />
-                    <div v-if="isErrorCompressOrExt" class="my-2 fst-italic text-muted text-danger small">Silahkan periksa kembali file-nya (jpg/png).</div>
+                  <template v-if="form.isEntrust">
+                    <div class="mb-4">
+                      <div class="text-muted fw-bold">Jabatan Penandatangan</div>
+                      <span class="fw-bold">{{ form.pj_penandatangan || '&#8212;' }}</span>
+                    </div>
+                    <div class="mb-4">
+                      <div class="text-muted fw-bold">Nama Pejabat Penandatangan</div>
+                      <span class="fw-bold">{{ form.nama_pj_penandatangan || '&#8212;' }}</span>
+                    </div>
+                    <div v-if="form.nomor_pegawai" class="mb-4">
+                      <div class="text-muted fw-bold">Nomor Pegawai</div>
+                      <span class="fw-bold">{{ form.nomor_pegawai }}</span>
+                    </div>
+                    <div v-if="form.nomor_sertifikat" class="mb-4">
+                      <div class="text-muted fw-bold">Nomor Sertifikat</div>
+                      <span class="fw-bold">{{ form.nomor_sertifikat }}</span>
+                    </div>
+                    <div v-if="tempLogoImg?.length" class="mb-4">
+                      <div class="text-muted fw-bold">Logo IDUKA</div>
+                      <img :src="`${host}/api/files/${certificate.collectionId}/${certificate.id}/${tempLogoImg}`" alt="Logo IDUKA" width="70">
+                    </div>
+                  </template>
+                  <div class="alert alert-info small">
+                    Nilai hanya dapat diisi atau diperbarui oleh <b>guru pembimbing</b> atau <b>instansi (tempat PKL)</b>. Hubungi salah satunya apabila ada data nilai yang perlu diperbaiki.
                   </div>
-
-                  <hr v-if="!certificate.isValid || certificate.isEntrust">
-
-                  <div v-if="!certificate.isValid" class="mb-4 form-check form-switch">
-                    <input v-model="form.isEntrust" :checked="form.isEntrust" class="form-check-input" type="checkbox" id="entrust" switch>
-                    <label for="entrust">Sertifikat (opsional)</label>
-                  </div>
-                  <div v-if="form.isEntrust">
-                    <div class="mb-4">
-                      <div v-if="certificate.isValid" class="text-muted fw-bold">Jabatan Penandatangan</div>
-                      <label v-else for="pj_penandatangan">Jabatan Penandatangan <span class="text-danger">*</span></label>
-                      <span v-if="certificate.isValid" class="fw-bold">{{ certificate.pj_penandatangan }}</span>
-                      <input v-else v-model="form.pj_penandatangan" type="text" id="pj_penandatangan" class="form form-control" placeholder="Contoh: CEO, Direktur, Kepala Dinas..." required>
-                    </div>
-                    <div class="mb-4">
-                      <div v-if="certificate.isValid" class="text-muted fw-bold">Nama Pejabat Penandatangan</div>
-                      <label for="nama_pj_penandatangan">Nama Lengkap Pejabat <span class="text-danger">*</span></label>
-                      <span v-if="certificate.isValid" class="fw-bold">{{ certificate.nama_pj_penandatangan }}</span>
-                      <input v-else :disabled="form.pj_penandatangan < 1" v-model="form.nama_pj_penandatangan" type="text" id="nama_pj_penandatangan" class="form form-control" placeholder="Tulis nama lengkap pejabat..." required>
-                    </div>
-                    <div class="mb-4">
-                      <div v-if="certificate.isValid" class="text-muted fw-bold">Nomor Pegawai</div>
-                      <label v-else for="nomor_pegawai">NIP <span class="text-muted">(opsional)</span></label>
-                      <span v-if="certificate.isValid" class="fw-bold">
-                        <span v-if="certificate.nomor_pegawai">{{ certificate.nomor_pegawai }}</span>
-                        <span v-else>&#8212;</span>
-                      </span>
-                      <input v-else v-model="form.nomor_pegawai" type="text" id="nomor_pegawai" class="form form-control" placeholder="Kosongkan jika tidak ada" >
-                    </div>
-                    <div class="mb-4">
-                      <div v-if="certificate.isValid" class="text-muted fw-bold">Nomor Sertifikat</div>
-                      <label v-else for="nomor_sertifikat">Nomor Sertifikat <span class="text-muted">(opsional)</span></label>
-                      <span v-if="certificate.isValid" class="fw-bold">
-                        <span v-if="certificate.nomor_sertifikat">{{ certificate.nomor_sertifikat }}</span>
-                        <span v-else>&#8212;</span>
-                      </span>
-                      <input v-else v-model="form.nomor_sertifikat" type="text" id="nomor_sertifikat" class="form form-control" placeholder="Kosongkan jika tidak ada" >
-                    </div>
-                    <div class="mb-4">
-                      <label for="logo_iduka">Logo IDUKA <span class="text-muted">(apabila punya)</span></label>
-                      <div v-if="tempLogoImg?.length" class="my-2"><img :src="`${host}/api/files/${certificate.collectionId}/${certificate.id}/${tempLogoImg}`" alt="Foto jurnal nilai" width="70"></div>
-                      <input v-if="!certificate.isValid" @change="compressFileLogo" class="form form-control" type="file" id="logo_iduka" accept="image/*" />
-                    </div>
-                  </div>
-                  <button v-if="!certificate.isValid" :disabled="isSending" class="btn btn-dark me-2 mb-2 border border-2 border-dark">
-                    <span v-if="isSending">Sedang menyimpan</span>
-                    <span v-else>Simpan</span>
-                  </button>
-                  <span v-if="isSaved" class="ms-2 mb-2 small fst-italic text-muted fw-bold">Berhasil diperbaharui!</span>
                 </div>
               </div>
-            </form>
+            </div>
             <!-- <div class="card my-3 hand-cursor" data-bs-toggle="modal" data-bs-target="#preview">
               <div class="card-body">
                 <div class="fw-bold fs-4 mb-3">{{ certificate?.expand.iduka.nama }}</div>
@@ -177,9 +147,7 @@
             <div class="text-center fs-4 fw-bold text-muted py-5">
               <i class="bi bi-database fs-1"></i> <br>
               Belum ada nilai
-              <div v-if="hasMappingIduka && hasMappingTeacher" class="mt-3">
-                <nuxt-link to="/nilai/tambah" class="btn btn-dark border border-2 border-dark"><i class="bi bi-send"></i> Serahkan nilai</nuxt-link>
-              </div>
+              <p class="small mt-2 mb-0">Nilai akan diisi langsung oleh <b>instansi (tempat PKL)</b> atau <b>guru pembimbing</b> setelah masa PKL berjalan/selesai.</p>
             </div>
           </div>
         </div>
@@ -189,7 +157,6 @@
 </template>
 
 <script setup>
-import Compressor from 'compressorjs'
 definePageMeta({ middleware: 'auth' })
 useHead({ title: "Nilai — e-PKL / SMK AL-FATAH BANJARNEGARA." })
 let user = usePocketBaseUser()
@@ -197,21 +164,20 @@ let client = usePocketBaseClient()
 let config = useRuntimeConfig()
 let host = config.public.apiBaseUrl+":"+config.public.apiPort
 let isLoading = ref(true)
-let isSending = ref(false)
-let isSaved = ref(false)
-let isError = ref(false)
-let isErrorCompressOrExt = ref(false)
 let isCertificate = ref(false)
-let isLoadingMetaPemetaan = ref(true)
 let prokel = user.user.value?.program_keahlian
 let siswa_id = user.user.value?.siswa
-// mode instansi (tempat PKL): hanya bisa mengisi/memperbarui nilai di halaman ini
+// [NILAI HANYA GURU/INSTANSI] nilai hanya boleh diisi/diperbarui oleh
+// guru pembimbing & instansi (tempat PKL) — sesuai kebijakan aplikasi
+// dan aturan koleksi nilai di PocketBase.
 let isInstansi = user.user.value?.role === 'instansi'
+let isGuru = user.user.value?.role === 'guru'
+let isPenilai = isInstansi || isGuru
 let nilaiList = ref([])
-let meta_pemetaan = ref()
 let certificate = ref()
 let tempLogoImg = ref()
 let tempNilaiImg = ref()
+let guruSiswaList = ref([])
 let form = ref({
   "nilai_elemen1": 0,
   "nilai_elemen2": 0,
@@ -227,17 +193,18 @@ let form = ref({
   "nomor_sertifikat": "",
 })
 
-let hasMappingTeacher = ref(false)
-let hasMappingIduka = ref(false)
-
-// daftar siswa + status nilai masing-masing untuk akun instansi
+// daftar siswa + status nilai masing-masing untuk akun guru/instansi
 let pemetaanList = ref([])
-let instansiRows = computed(() => {
+let penilaiRows = computed(() => {
   let rows = []
   let seen = new Set()
-  // siswa yang dipetakan ke instansi ini (belum punya nilai pun tetap tampil)
-  for (let pem of pemetaanList.value) {
-    let s = pem.expand?.siswa
+  // sumber daftar siswa:
+  // - instansi: siswa yang dipetakan ke iduka milik akun instansi
+  // - guru: siswa yang dibimbing (siswa.guru_pembimbing = akun guru ini)
+  let sumber = isInstansi
+    ? pemetaanList.value.map(p => p.expand?.siswa).filter(Boolean)
+    : guruSiswaList.value
+  for (let s of sumber) {
     if (!s || seen.has(s.id)) continue
     seen.add(s.id)
     rows.push({ siswa: s, nilai: nilaiList.value.find(n => n.siswa === s.id) })
@@ -287,22 +254,30 @@ async function getNilaiInstansi() {
   isLoading.value = false
 }
 
-async function updateNilai() {
-  form.value.iduka = meta_pemetaan.value.iduka
-  form.value.siswa = siswa_id
-  isSending.value = true
-  isSaved.value = false
+// [NILAI HANYA GURU/INSTANSI] Guru pembimbing: daftar siswa binaannya
+// (siswa.guru_pembimbing = akun guru ini) + nilai masing-masing.
+async function getNilaiGuru() {
+  isLoading.value = true
+  client.autoCancellation(false)
   try {
-    let res = await client.collection('nilai').update(certificate.value.id, form.value)
-    if(res) {
-      isSending.value = false
-      isSaved.value = true
+    guruSiswaList.value = await client.collection('siswa').getFullList({
+      filter: `guru_pembimbing='${user.user.value?.id}'`
+    })
+    const ids = guruSiswaList.value.map(s => s.id)
+    if (ids.length) {
+      nilaiList.value = await client.collection('nilai').getFullList({
+        filter: ids.map(id => `siswa='${id}'`).join(' || '),
+        expand: 'siswa, iduka'
+      })
+    } else {
+      nilaiList.value = []
     }
-  } catch(err) {
-    isSending.value = false
-    isSaved.value = false
-    isError.value = true
+  } catch(e) {
+    console.error('[nilai] Gagal memuat nilai guru:', e)
+    guruSiswaList.value = []
+    nilaiList.value = []
   }
+  isLoading.value = false
 }
 
 async function getNilai(loading=true, isCert=false) {
@@ -327,72 +302,15 @@ async function getNilai(loading=true, isCert=false) {
   }
 }
 
-async function getIdukaByPeserta() {
-  isLoadingMetaPemetaan.value = true
-  client.autoCancellation(false)
-  try {
-    let res = await client.collection('pemetaan').getFirstListItem(`siswa='${siswa_id}'`, {
-      expand: `siswa`
-    })
-    if(res) {
-      meta_pemetaan.value = res
-
-      // jika sudah pemetaan peserta ke IDUKA maka hasMappingIduka harus true agar bisa serahkan nilai
-      hasMappingIduka.value = true
-      isLoadingMetaPemetaan.value = false
-
-      let res_pemetaan_pembimbing = await client.collection('pemetaan_pembimbing').getFirstListItem(`pembimbing="${res.expand?.siswa.guru_pembimbing}"`)
-      if(res_pemetaan_pembimbing) {
-        // jika sudah pemetaan peserta ke guru maka hasMappingTeacher harus true agar bisa serahkan nilai
-        hasMappingTeacher.value = true
-      }
-    }
-  } catch(err) {
-    isError.value = true
-    isLoadingMetaPemetaan.value = false
-    meta_pemetaan.value = ""
-    hasMappingIduka.value = false
-    hasMappingTeacher.value = false
-  }
-}
-
-function compressFile(e) {
-  isErrorCompressOrExt.value = false
-  let file = e.target.files[0]
-  if(!file) return;
-  new Compressor(file, {
-    quality: 0.6,
-    success(result) {
-      form.value.foto_jurnal_nilai = result
-    },
-    error(err) {
-      console.error(err.message)
-      isErrorCompressOrExt.value = true
-    }
-  })
-}
-
-function compressFileLogo(e) {
-  let file = e.target.files[0]
-  if(!file) return
-  new Compressor(file, {
-    quality: 0.6,
-    success(result) {
-      form.value.logo = result
-    },
-    error(err) {
-      console.log(err.message)
-    }
-  })
-}
-
 onMounted(() => {
-  if (isInstansi) {
-    getNilaiInstansi()
+  // [NILAI HANYA GURU/INSTANSI] guru & instansi -> daftar penilaian
+  // (bisa mengisi/memperbarui via /nilai/tambah); siswa -> lihat nilai
+  // miliknya saja (read-only)
+  if (isPenilai) {
+    isGuru ? getNilaiGuru() : getNilaiInstansi()
     return
   }
   getNilai()
-  getIdukaByPeserta()
   client.autoCancellation(false)
   client.collection('nilai').subscribe('*', function(e) {
     // getNilai params:

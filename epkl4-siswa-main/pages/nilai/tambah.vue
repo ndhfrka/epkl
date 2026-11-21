@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <div class="card-header">
-      <span class="h4 fw-bold">Serahkan Nilai</span>
+      <span class="h4 fw-bold">Isi / Perbarui Nilai PKL</span>
       <span class="float-end">
         <nuxt-link to="/nilai" class="btn btn-light btn-sm border border-2 border-dark">Kembali</nuxt-link>
       </span>
@@ -65,10 +65,10 @@
             </div>
             <button :disabled="isSending || form.nilai_elemen1 < 1 || form.nilai_elemen2 < 1 || form.nilai_elemen3 < 1 || form.nilai_elemen4 < 1" class="btn btn-dark me-2 border border-2 border-dark">
               <span v-if="isSending">Sedang mengirim</span>
-              <span v-else>{{ editId ? 'Simpan Perbaruan' : 'Serahkan' }}</span>
+              <span v-else>{{ editId ? 'Simpan Perbaruan' : 'Kirim Nilai' }}</span>
             </button>
             <nuxt-link to="/nilai" class="btn btn-light border border-2 border-dark">Kembali</nuxt-link>
-            <span v-if="isSaved" class="ms-3 small fst-italic text-muted">Nilai berhasil diserahkan!</span>
+            <span v-if="isSaved" class="ms-3 small fst-italic text-muted">Nilai berhasil disimpan!</span>
           </form>
         </div>
       </div>
@@ -91,10 +91,12 @@ let isLoadingMetaPemetaan = ref(true)
 let prokel = user.user.value?.program_keahlian
 let siswa_id = user.user.value?.siswa
 let meta_pemetaan = ref()
-// mode instansi (tempat PKL): mengisi/memperbarui nilai via query
+// [NILAI HANYA GURU/INSTANSI] mengisi/memperbarui nilai via query
 // ?nilai=<id> = perbarui nilai, ?siswa=<id> = isi nilai baru
 let route = useRoute()
 let isInstansi = user.user.value?.role === 'instansi'
+let isGuru = user.user.value?.role === 'guru'
+let isPenilai = isInstansi || isGuru
 let editId = route.query.nilai || ''
 let targetSiswa = route.query.siswa || ''
 let targetSiswaNama = ref('')
@@ -128,8 +130,9 @@ async function buatBaru() {
   isSending.value = true
   isSaved.value = false
   try {
-    if (isInstansi) {
-      // instansi: perbarui nilai lama atau buat nilai baru untuk siswa yang dituju
+    if (isPenilai) {
+      // guru pembimbing / instansi: perbarui nilai lama atau buat nilai
+      // baru untuk siswa yang dituju (siswa tidak lagi mengirim nilai)
       if (editId) {
         await client.collection('nilai').update(editId, form.value)
       } else {
@@ -139,16 +142,6 @@ async function buatBaru() {
       isSaved.value = true
       navigateTo('/nilai')
       return
-    }
-    form.value.iduka = meta_pemetaan.value.iduka
-    form.value.siswa = siswa_id
-    form.value.pembimbing = pembimbing_id.value
-
-    let res = await client.collection('nilai').create(form.value)
-    if(res) {
-      isSending.value = false
-      isSaved.value = true
-      navigateTo('/nilai')
     }
   } catch(err) {
     isSending.value = false
@@ -267,7 +260,15 @@ async function prefillInstansi() {
       form.value.siswa = targetSiswa
       try {
         let s = await client.collection('siswa').getOne(targetSiswa)
-        if (s) targetSiswaNama.value = s.nama
+        if (s) {
+          targetSiswaNama.value = s.nama
+          form.value.pembimbing = s.guru_pembimbing || ''
+        }
+      } catch(e) {}
+      // isi iduka dari pemetaan siswa agar data nilai tetap lengkap
+      try {
+        let pm = await client.collection('pemetaan').getFirstListItem(`siswa='${targetSiswa}'`)
+        if (pm) form.value.iduka = pm.iduka
       } catch(e) {}
     }
   } catch(e) {}
@@ -275,10 +276,11 @@ async function prefillInstansi() {
 }
 
 onMounted(() => {
-  // Hanya akun instansi (tempat PKL) yang boleh mengisi/mengubah nilai.
-  // Guru & siswa hanya boleh memantau (sesuai kebijakan aplikasi).
-  if (!isInstansi) {
-    alert('Hanya akun instansi (tempat PKL) yang boleh mengisi atau mengubah nilai.')
+  // [NILAI HANYA GURU/INSTANSI] hanya guru pembimbing & instansi (tempat
+  // PKL) yang boleh mengisi/mengubah nilai; siswa hanya memantau
+  // (sesuai kebijakan aplikasi & aturan koleksi nilai di PocketBase).
+  if (!isPenilai) {
+    alert('Hanya akun guru pembimbing atau instansi (tempat PKL) yang boleh mengisi atau mengubah nilai.')
     navigateTo('/nilai')
     return
   }
