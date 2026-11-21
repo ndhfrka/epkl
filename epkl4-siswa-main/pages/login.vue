@@ -229,25 +229,38 @@ async function handleLogin() {
   background: transparent;
   padding: 0 10px 0 0;
   color: var(--md-sys-color-on-surface, #e2e8f0);
-  /* [PERBAIKAN TEKS HITAM] Layar login selalu gelap, jadi teks input dipaksa
-     terang di SEMUA kondisi (ketikan manual, isi-otomatis/autofill, fokus).
+  /* [PERBAIKAN TEKS HITAM] Pada mode GELAP, teks input dipaksa terang di
+     SEMUA kondisi (ketikan manual, isi-otomatis/autofill, fokus).
      Sebagian browser (Chrome, Samsung Internet, WebView Android) memaksa
      teks jadi hitam saat isi-otomatis aktif sehingga tulisan tak terlihat
      di atas latar gelap. -webkit-text-fill-color menimpa gaya internal
-     browser; color menangani Firefox. */
-  color: #f1f5f9 !important;
-  -webkit-text-fill-color: #f1f5f9 !important;
-  caret-color: #f1f5f9 !important;
+     browser; color menangani Firefox.
+     [MODE TERANG] varian html[data-tema='terang'] membaliknya menjadi teks
+     gelap agar selaras dengan latar terang — desktop & mobile. */
   font: var(--md-sys-typescale-body-large-font, 400 16px/1.5 "Plus Jakarta Sans", sans-serif);
   font-size: 16px !important;  /* 16px = standard, hindari zoom auto di iOS */
   letter-spacing: 0.2px;
   height: 100%;
 }
-/* Override background putih otomatis bawaan browser Chrome/Safari/Edge saat autofill */
-.m3-text-field__input:-webkit-autofill,
-.m3-text-field__input:-webkit-autofill:hover, 
-.m3-text-field__input:-webkit-autofill:focus, 
-.m3-text-field__input:-webkit-autofill:active {
+/* --- MODE GELAP (bawaan): teks terang --- */
+:global(html:not([data-tema='terang'])) .m3-text-field__input {
+  color: #f1f5f9 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  caret-color: #f1f5f9 !important;
+}
+/* --- MODE TERANG: teks gelap --- */
+:global(html[data-tema='terang']) .m3-text-field__input {
+  color: #0f1729 !important;
+  -webkit-text-fill-color: #0f1729 !important;
+  caret-color: #0f1729 !important;
+}
+/* Override isi-otomatis (autofill) bawaan browser Chrome/Safari/Edge.
+   MODE GELAP: blok autofill ikut gelap; MODE TERANG: blok ikut terang
+   supaya kotak isian tidak tampak hitam dan ketikan tetap terbaca. */
+:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill,
+:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill:hover,
+:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill:focus,
+:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #09101e inset !important;
   box-shadow: 0 0 0 1000px #09101e inset !important;
   -webkit-text-fill-color: #f1f5f9 !important;
@@ -255,11 +268,28 @@ async function handleLogin() {
   color: #f1f5f9 !important;
   transition: background-color 50000s ease-in-out 0s !important;
 }
-.m3-text-field__input:autofill {
+:global(html:not([data-tema='terang'])) .m3-text-field__input:autofill {
   background-color: #09101e !important;
   color: #f1f5f9 !important;
   -webkit-text-fill-color: #f1f5f9 !important;
   box-shadow: 0 0 0 1000px #09101e inset !important;
+}
+:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill,
+:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill:hover,
+:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill:focus,
+:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #f3f6fa inset !important;
+  box-shadow: 0 0 0 1000px #f3f6fa inset !important;
+  -webkit-text-fill-color: #0f1729 !important;
+  caret-color: #0f1729 !important;
+  color: #0f1729 !important;
+  transition: background-color 50000s ease-in-out 0s !important;
+}
+:global(html[data-tema='terang']) .m3-text-field__input:autofill {
+  background-color: #f3f6fa !important;
+  color: #0f1729 !important;
+  -webkit-text-fill-color: #0f1729 !important;
+  box-shadow: 0 0 0 1000px #f3f6fa inset !important;
 }
 .m3-text-field__input::placeholder {
   color: var(--md-sys-color-on-surface-variant, #c3c7d2);
