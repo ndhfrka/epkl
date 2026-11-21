@@ -1445,3 +1445,27 @@ html .agenda-paper .agenda-table thead th {
   background-color: #e5e7eb !important;
   border-color: #111827 !important;
 }
+
+/* ====== [KUNCI KARTU ANTI-URUTAN] ======
+   HMR bisa memindahkan <style> theme.css ke urutan SETELAH bootstrap,
+   sehingga .card Bootstrap (latar putih) menang atas rule tema dan teks
+   palet gelap jatuh di kartu putih -> tulisan tidak terbaca. Kunci dengan
+   !important + nilai fallback supaya hasil TIDAK bergantung urutan CSS. */
+html .card {
+  background-color: var(--md-sys-color-surface-container, #0d1424) !important;
+  color: var(--md-sys-color-on-surface, #e2e8f0) !important;
+}
+html .card .card-header,
+html .card .card-body,
+html .card .card-footer {
+  color: var(--md-sys-color-on-surface, #e2e8f0) !important;
+}
+html[data-tema='terang'] .card {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+html[data-tema='terang'] .card .card-header,
+html[data-tema='terang'] .card .card-body,
+html[data-tema='terang'] .card .card-footer {
+  color: #0f1729 !important;
+}
