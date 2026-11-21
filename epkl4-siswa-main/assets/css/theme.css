@@ -823,8 +823,11 @@ a.link:hover {
   }
   .row {
     --bs-gutter-x: 0.75rem;
-    margin-left: 0;
-    margin-right: 0;
+    /* [PERBAIKAN ALIGN] margin negatif dipulihkan (dulu dinolkan) agar
+       model gutter Bootstrap simetris: kolom mana pun berakhir tepat di
+       tepi kontainer, sehingga kartu yang bertumpuk di mobile sejajar */
+    margin-left: calc(var(--bs-gutter-x) * -0.5);
+    margin-right: calc(var(--bs-gutter-x) * -0.5);
   }
 
   /* Cards mobile: padding lebih nyaman & jarak antar card jelas */
@@ -842,14 +845,15 @@ a.link:hover {
   }
   /* Khusus card di dalam col bootstrap: jangan 0 padding col, biar jarak antar card ada */
   .row { margin-bottom: 0 !important; }
+  /* [PERBAIKAN ALIGN] padding kolom kini simetris untuk SEMUA kolom.
+     Dulu :first-child/:last-child dibuat 0 di sisi luarnya — karena margin
+     negatif row dinolkan, kartu pertama jadi rata kiri sedangkan kartu
+     berikutnya terdorong masuk, sehingga kartu bertumpuk tidak sejajar. */
   .row > [class*="col-"] {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left: calc(var(--bs-gutter-x) * 0.5);
+    padding-right: calc(var(--bs-gutter-x) * 0.5);
     margin-bottom: 4px;
   }
-  .row > [class*="col-"]:first-child { padding-left: 0; }
-  .row > [class*="col-"]:last-child  { padding-right: 0; }
-  .row > [class*="col-"]:only-child { padding-left: 0; padding-right: 0; }
 
   /* Buttons full-width di mobile untuk aksi utama (opsional, via .btn-block class).
      Biarkan default inline-flex, tapi tambah helper .m3-btn-block. */
@@ -905,10 +909,14 @@ a.link:hover {
   .card .card-body { padding: 15px; }
   .btn { padding: 9px 18px !important; }
   .btn-sm { padding: 5px 12px !important; }
-  .row { --bs-gutter-x: 0.5rem; }
+  .row {
+    --bs-gutter-x: 0.5rem;
+    margin-left: calc(var(--bs-gutter-x) * -0.5);
+    margin-right: calc(var(--bs-gutter-x) * -0.5);
+  }
   .row > [class*="col-"] {
-    padding-left: 0.35rem;
-    padding-right: 0.35rem;
+    padding-left: calc(var(--bs-gutter-x) * 0.5);
+    padding-right: calc(var(--bs-gutter-x) * 0.5);
   }
 }
 
