@@ -113,27 +113,6 @@
             </div>
           </div>
 
-          <!-- [FIX AGENDA KOSONG] pemberitahuan saat bulan terpilih tidak punya data -->
-          <div v-if="infoAgendaKosong" class="agenda-empty-notice" :class="'agenda-empty-notice--' + infoAgendaKosong.tipe">
-            <template v-if="infoAgendaKosong.tipe === 'pindah-bulan'">
-              <div class="agenda-empty-notice__title"><i class="bi bi-calendar2-week"></i> Belum ada kegiatan pada {{ infoAgendaKosong.periode }}</div>
-              <div class="agenda-empty-notice__text">
-                Kamu punya {{ infoAgendaKosong.jumlahLain }} kegiatan tercatat pada periode lain — kegiatan terakhir: {{ infoAgendaKosong.terakhir }}.
-              </div>
-              <button type="button" class="agenda-empty-notice__btn" @click="tampilkanSemuaAgenda()">
-                <i class="bi bi-eye"></i> Tampilkan semua kegiatan
-              </button>
-            </template>
-            <template v-else-if="infoAgendaKosong.tipe === 'gagal-muat'">
-              <div class="agenda-empty-notice__title"><i class="bi bi-wifi-off"></i> Gagal memuat data agenda</div>
-              <div class="agenda-empty-notice__text">Koneksi ke server tidak stabil. Tarik ke bawah untuk refresh atau buka ulang halaman ini.</div>
-            </template>
-            <template v-else>
-              <div class="agenda-empty-notice__title"><i class="bi bi-journal-plus"></i> Agenda masih kosong</div>
-              <div class="agenda-empty-notice__text">{{ infoAgendaKosong.teks }}</div>
-            </template>
-          </div>
-
           <div class="table-scroll">
             <table class="agenda-table">
               <thead>
@@ -325,7 +304,6 @@ let bulanList = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli',
 let tahunList = []
 for (let t = 2024; t <= new Date().getFullYear() + 1; t++) tahunList.push(t)
 let jurnalAgenda = ref([])
-let agendaGagalMuat = ref(false)
 let isEksporPdf = ref(false)
 let infoNama = ref('')
 let infoNis = ref('')
@@ -340,42 +318,6 @@ let agendaItems = computed(() => jurnalAgenda.value.filter(j => {
 
 // total baris selalu 27 seperti formulir agenda, sisanya baris kosong
 let emptyRowCount = computed(() => Math.max(0, 27 - agendaItems.value.length))
-
-// [FIX AGENDA KOSONG] tabel agenda default memfilter bulan BERJALAN, sehingga
-// jurnal yang semuanya tercatat di bulan sebelumnya membuat tabel tampak kosong
-// dan disangka bug (padahal datanya ada). Sediakan info jelas + tombol pintasan
-// "tampilkan semua" supaya pengguna langsung paham dan bisa melihat datanya.
-let infoAgendaKosong = computed(() => {
-  if (agendaItems.value.length > 0) return null
-  if (agendaGagalMuat.value) {
-    return { tipe: 'gagal-muat' }
-  }
-  const semua = jurnalAgenda.value
-  if (!semua.length) {
-    return {
-      tipe: 'kosong-total',
-      teks: (isInstansi || isGuru)
-        ? 'Belum ada kegiatan yang tercatat pada agenda untuk siswa yang dipantau.'
-        : 'Belum ada kegiatan yang tercatat pada agenda. Klik tombol "Tambah Kegiatan" atau tombol biru di kanan bawah untuk menuliskan kegiatan harianmu.'
-    }
-  }
-  const terakhir = semua.reduce((a, b) => (b._d > a._d ? b : a))
-  const periode = filterBulan.value != 0
-    ? `${bulanList[filterBulan.value - 1]} ${filterTahun.value}`
-    : `tahun ${filterTahun.value}`
-  return {
-    tipe: 'pindah-bulan',
-    periode,
-    jumlahLain: semua.length,
-    terakhir: terakhir.tanggal,
-    tahunTerakhir: terakhir._d.getFullYear()
-  }
-})
-
-function tampilkanSemuaAgenda() {
-  filterBulan.value = 0
-  if (infoAgendaKosong.value?.tahunTerakhir) filterTahun.value = infoAgendaKosong.value.tahunTerakhir
-}
 
 // tanggal agenda yang diketik (format: Hari, D/M/YYYY) menentukan bulan datanya
 function parseAgendaDate(s) {
@@ -398,7 +340,6 @@ async function getJurnalAgenda() {
       const uid = user.user.value?.id
       if (!isInstansi && !isGuru && !uid) return // tunggu watch identitas memuat ulang
       const filterSiswa = (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${uid}"`
-      agendaGagalMuat.value = false
       let res = []
       try {
         const list = await client.collection('jurnal').getList(1, 500, {
@@ -446,7 +387,6 @@ async function getJurnalAgenda() {
     } catch (e) {
       if (percobaan === 2) {
         jurnalAgenda.value = []
-        agendaGagalMuat.value = true
         return
       }
       await new Promise(r => setTimeout(r, 400))
@@ -1555,57 +1495,5 @@ onMounted(() => {
 .btn-ekspor-pdf:disabled {
   opacity: 0.75 !important;
   cursor: not-allowed;
-}
-
-/* ====== [FIX AGENDA KOSONG] notifikasi saat bulan terpilih tidak punya data ====== */
-/* kertas agenda selalu putih di kedua tema, jadi warna notifikasi netral gelap agar terbaca */
-.agenda-empty-notice {
-  margin: 10px 14px 12px;
-  padding: 10px 14px;
-  border: 1px dashed rgba(0, 75, 118, 0.45);
-  border-left: 4px solid #004b76;
-  border-radius: 8px;
-  background: rgba(0, 75, 118, 0.06);
-  color: #14213b;
-}
-.agenda-empty-notice__title {
-  font-size: 0.86rem;
-  font-weight: 700;
-  margin-bottom: 2px;
-  color: #14213b;
-}
-.agenda-empty-notice__title i {
-  margin-right: 4px;
-}
-.agenda-empty-notice__text {
-  font-size: 0.78rem;
-  line-height: 1.45;
-  color: #33415c;
-}
-.agenda-empty-notice__btn {
-  margin-top: 8px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: #004b76;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.agenda-empty-notice__btn:hover {
-  background: #005f94;
-}
-.agenda-empty-notice--kosong-total {
-  border-style: solid;
-  background: rgba(15, 23, 42, 0.05);
-  border-color: rgba(15, 23, 42, 0.25);
-  border-left-color: #475569;
-}
-.agenda-empty-notice--gagal-muat {
-  border-style: solid;
-  background: rgba(180, 83, 9, 0.07);
-  border-color: rgba(180, 83, 9, 0.4);
-  border-left-color: #b45309;
 }
 </style>
