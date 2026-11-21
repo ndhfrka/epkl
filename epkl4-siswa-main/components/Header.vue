@@ -28,8 +28,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: calc(40px + var(--m3-safe-top, 0px)) 20px 16px;
+  gap: 12px;
+  padding: calc(32px + var(--m3-safe-top, 0px)) 20px 16px;
   text-align: center;
 }
 
@@ -48,8 +48,8 @@
   border-radius: 32px;
 }
 .m3-login-header__avatar {
-  width: 78px;
-  height: 78px;
+  width: 104px;
+  height: 104px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -61,8 +61,10 @@
   box-shadow: none;
 }
 .m3-login-header__logo-img {
-  width: 64px;
-  height: 64px;
+  /* [UKURAN LOGO] 96x96px (setara w-24 h-24) dengan object-contain
+     agar tulisan pada logo sekolah terbaca jelas. */
+  width: 96px;
+  height: 96px;
   object-fit: contain;
   display: block;
   /* [LOGO OPSI 1] Subtle shadow mengikuti bentuk alpha logo (bukan
@@ -99,15 +101,16 @@
   font-weight: 600;
 }
 
-/* Desktop (≥ 992px): Logo & judul DIPERBESAR agar tidak tampak kecil di tengah layar lebar */
+/* Desktop (≥ 992px): logo dikunci 96x96 (sama seperti mobile); padding
+   atas & gap dirapikan agar blok header tetap proporsional */
 @media (min-width: 992px) {
   .m3-login-header {
-    padding: 56px 28px 20px;
-    gap: 18px;
+    padding: 44px 28px 20px;
+    gap: 14px;
   }
-  .m3-login-header__logo { width: 130px; height: 130px; border-radius: 36px; }
-  .m3-login-header__avatar { width: 88px; height: 88px; border-radius: 28px; }
-  .m3-login-header__logo-img { width: 74px; height: 74px; }
+  .m3-login-header__logo { width: 116px; height: 116px; border-radius: 36px; }
+  .m3-login-header__avatar { width: 104px; height: 104px; border-radius: 28px; }
+  .m3-login-header__logo-img { width: 96px; height: 96px; }
   .m3-login-header__title { font-size: 36px; }
   .m3-login-header__role { font-size: 13px; }
 }
