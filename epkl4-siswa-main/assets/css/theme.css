@@ -1412,3 +1412,36 @@ html[data-tema='terang'] .team-card .text-white {
 html[data-tema='terang'] .empty-team-state .text-muted {
   color: #64748b !important;
 }
+
+/* ====== [REVISI AGENDA PAPER] kunci warna kertas agenda secara GLOBAL ====== */
+/* Kertas agenda adalah "formulir cetak": di KEDUA tema harus putih dengan teks gelap.
+   Aturan ini sengaja GLOBAL (dimuat di awal lewat nuxt.config css) agar tampilan kertas
+   tidak bergantung pada CSS scoped halaman yang bisa gagal/delay termuat saat navigasi
+   SPA (mis. tepat setelah login) — kondisi yang sebelumnya membuat seluruh teks kertas
+   mewarisi warna teks mode gelap sehingga terlihat "hilang" sampai halaman di-refresh. */
+html .agenda-paper,
+html .agenda-paper .agenda-title,
+html .agenda-paper .agenda-subtitle,
+html .agenda-paper .agenda-info-label,
+html .agenda-paper .agenda-info-colon,
+html .agenda-paper .agenda-info-value,
+html .agenda-paper .info-text,
+html .agenda-paper .agenda-table,
+html .agenda-paper .agenda-table th,
+html .agenda-paper .agenda-table td {
+  color: #111827 !important;
+}
+html .agenda-paper {
+  background: #ffffff !important;
+}
+html .agenda-paper .agenda-info-value {
+  border-bottom-color: #6b7280 !important;
+}
+html .agenda-paper .agenda-table th,
+html .agenda-paper .agenda-table td {
+  border-color: #374151 !important;
+}
+html .agenda-paper .agenda-table thead th {
+  background-color: #e5e7eb !important;
+  border-color: #111827 !important;
+}
