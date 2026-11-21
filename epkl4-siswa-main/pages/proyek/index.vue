@@ -86,7 +86,7 @@
                 </td>
                 <td v-for="h in jumlahHari" :key="a.id + '-' + h" class="col-hari cell-day" :class="a.marks[h] ? 'mark-' + a.marks[h] : ''" title="Klik: ✓ → S → I → A → kosong" @click="toggleDay(a, h)">
                   <span v-if="a.marks[h]">{{ markSymbol(a.marks[h]) }}</span>
-                  <span v-else-if="liburPada(h)" class="mark-libur">L</span>
+                  <span v-else-if="i === 0 && liburPada(h)" class="mark-libur">L</span>
                 </td>
               </tr>
               <template v-if="!isInstansi && !isGuru">
@@ -102,7 +102,7 @@
                     </template>
                     <span v-else class="fill-hint" @click="startNew('baru-' + n)"><i class="bi bi-plus-lg"></i> tulis kegiatan</span>
                   </td>
-                  <td v-for="h in jumlahHari" :key="'kosong-' + n + '-' + h" class="col-hari cell-day" title="Klik untuk tandai hadir di tanggal ini" @click="startDayBaru(n, h)"><span v-if="liburPada(h)" class="mark-libur">L</span></td>
+                  <td v-for="h in jumlahHari" :key="'kosong-' + n + '-' + h" class="col-hari cell-day" title="Klik untuk tandai hadir di tanggal ini" @click="startDayBaru(n, h)"><span v-if="agendaItems.length === 0 && n === 1 && liburPada(h)" class="mark-libur">L</span></td>
                 </tr>
               </template>
             </tbody>
