@@ -34,8 +34,8 @@
 }
 
 .m3-login-header__logo {
-  width: 104px;
-  height: 104px;
+  width: 116px;
+  height: 116px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -48,8 +48,8 @@
   border-radius: 32px;
 }
 .m3-login-header__avatar {
-  width: 68px;
-  height: 68px;
+  width: 78px;
+  height: 78px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -61,8 +61,8 @@
   box-shadow: none;
 }
 .m3-login-header__logo-img {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
   display: block;
   /* [LOGO OPSI 1] Subtle shadow mengikuti bentuk alpha logo (bukan
@@ -105,9 +105,9 @@
     padding: 56px 28px 20px;
     gap: 18px;
   }
-  .m3-login-header__logo { width: 116px; height: 116px; border-radius: 36px; }
-  .m3-login-header__avatar { width: 76px; height: 76px; border-radius: 28px; }
-  .m3-login-header__logo-img { width: 64px; height: 64px; }
+  .m3-login-header__logo { width: 130px; height: 130px; border-radius: 36px; }
+  .m3-login-header__avatar { width: 88px; height: 88px; border-radius: 28px; }
+  .m3-login-header__logo-img { width: 74px; height: 74px; }
   .m3-login-header__title { font-size: 36px; }
   .m3-login-header__role { font-size: 13px; }
 }

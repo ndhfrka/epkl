@@ -211,8 +211,8 @@ let username = user.user.value?.username
 }
 
 :deep(.m3-login-header__logo) {
-  width: 68px !important;
-  height: 68px !important;
+  width: 80px !important;
+  height: 80px !important;
   border-radius: 20px !important;
   /* [LOGO OPSI 1] Konsisten dengan Header.vue: kotak latar hijau
      dihapus — logo transparan tampil langsung di atas card gelap
@@ -222,13 +222,22 @@ let username = user.user.value?.username
 }
 
 :deep(.m3-login-header__avatar) {
-  width: 46px !important;
-  height: 46px !important;
+  width: 80px !important;
+  height: 80px !important;
   border-radius: 14px !important;
   /* [LOGO OPSI 1] kapsul putih dihapus juga; berfungsi sebagai
      spacing saja, background & ring dibuang */
   background: transparent !important;
   box-shadow: none !important;
+}
+
+/* [PERBESAR LOGO] Logo di side-nav dashboard desktop secara efektif
+   mengikuti media >=992px Header.vue (74px); di sini dikunci 72px agar
+   proporsional dengan judul side-nav — lebih terlihat namun tidak
+   membesar berlebihan. */
+:deep(.m3-login-header__logo-img) {
+  width: 72px !important;
+  height: 72px !important;
 }
 
 :deep(.m3-login-header__avatar-icon) {
