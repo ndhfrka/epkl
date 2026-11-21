@@ -1,6 +1,6 @@
 # ePKL — elektronik Praktik Kerja Lapangan
 
-![version](https://img.shields.io/badge/version-3.0-blue) ![frontend](https://img.shields.io/badge/Nuxt-3.x-00DC82) ![backend](https://img.shields.io/badge/PocketBase-0.21-brightgreen) ![license](https://img.shields.io/badge/license-MIT-lightgrey)
+![version](https://img.shields.io/badge/version-3.0-blue) ![frontend](https://img.shields.io/badge/Nuxt-3.x-00DC82) ![backend](https://img.shields.io/badge/PocketBase-0.40-brightgreen) ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
 **ePKL** adalah aplikasi **Kehadiran & Jurnal Peserta PKL** untuk SMK (PPLG, TKR, AKL). Aplikasi ini ditulis ulang dari Python/Django menjadi JavaScript (Vue/Nuxt) dan memakai **PocketBase** sebagai backend, serta sengaja dipisah antara **aplikasi siswa** dan **aplikasi guru** agar mudah dikembangkan. Fitur terus berkembang sejalan dengan Kurikulum dan kebutuhan sekolah.
 
@@ -12,6 +12,10 @@
 
 | Fitur | Keterangan |
 |---|---|
+| **Kontrol Akses Nilai** | Nilai hanya dapat diisi/diperbarui oleh **guru pembimbing** atau **instansi (IDUKA)** — siswa hanya dapat melihat; dijaga di sisi UI maupun aturan akses (API rules) PocketBase |
+| **Perbaikan Jurnal SPA** | Jurnal & agenda tidak lagi kosong saat berpindah halaman tanpa refresh — data dimuat otomatis mengikuti identitas user yang masuk |
+| **Tampilan Terang Konsisten** | Kartu "Rekan Satu Tim PKL" di dashboard kini menyatu dengan kartu lain pada mode terang (mode gelap tidak berubah) |
+| **Logo Sekolah Lebih Jelas** | Logo pada halaman login & dashboard diperbesar (96×96) dengan tampilan bersih yang menyatu |
 | **Galeri Foto Kegiatan PKL** | Halaman galeri foto dokumentasi — guru melihat sesuai jurusan pembinaannya, admin melihat semua jurusan, siswa melihat dokumentasi sendiri |
 | **Waktu Server Resmi (WIB)** | Endpoint `server/api/server-time.get.ts` + composable `useServerTime` — mencegah manipulasi tanggal/jam dari perangkat siswa; indikator waktu server tampil di halaman validasi guru |
 | **Absen Otomatis dari Jurnal** | Setiap kegiatan jurnal yang di-upload otomatis menjadi baris absen (kolom "Jenis Kegiatan" + tanda ✓ pada tanggal terkait) |
@@ -27,7 +31,7 @@
 - **Autentikasi** — login, logout, ganti sandi, ubah password (middleware `auth.ts` / `check-auth.ts`)
 - **Jurnal Harian** — tulis kegiatan + foto (auto-kompres `compressorjs`, konversi .jpg/.png/.webp, watermark), simpan **draf**, filter per Elemen, pagination load-more, persentase kesesuaian realtime
 - **Kehadiran (Absen)** — tabel absen terisi otomatis dari kegiatan jurnal
-- **Nilai** — lihat & input nilai PKL
+- **Nilai** — melihat nilai PKL (read-only); pengisian & pembaruan hanya oleh guru pembimbing / instansi
 - **Proyek / Self Project** — penyerahan proyek terpetakan dengan PKL & Guru Pembimbing
 - **IDUKA** — profil industri tempat PKL, pembimbing, dan pemetaan PKL
 - **Elemen & Capaian Pembelajaran (CP)** — referensi elemen CP per jurusan
@@ -39,6 +43,11 @@
 - **Galeri Foto** — pantau dokumentasi kegiatan per jurusan
 - **Pemantauan Siswa** (`useSiswaDipantau`) — monitoring siswa yang dibimbing
 - **Komentar Jurnal** — guru dapat berkomentar pada jurnal siswa
+- **Isi & Perbarui Nilai** — mengisi/memperbarui nilai PKL siswa bimbingannya (halaman `/nilai`)
+
+### Instansi / IDUKA
+- **Isi & Perbarui Nilai** — akun instansi (role `instansi` pada `teacher_users`) mengisi/memperbarui nilai peserta yang terpetakan ke IDUKA-nya
+- **Pantau Peserta** — melihat jurnal & pemetaan peserta PKL yang ditempatkan di instansinya
 
 ---
 
@@ -67,7 +76,7 @@ epkl/
 | Lapisan | Teknologi |
 |---|---|
 | Frontend | [Nuxt 3](https://nuxt.com) (SPA/CSR), [Vue 3](https://vuejs.org), Bootstrap 5 + ikon Bootstrap |
-| Backend | [PocketBase](https://pocketbase.io) 0.21 (BaaS berbasis [Go](https://go.dev)) — auth, SQLite, file storage |
+| Backend | [PocketBase](https://pocketbase.io) 0.40 (BaaS berbasis [Go](https://go.dev)) — auth, SQLite, file storage |
 | Lainnya | `compressorjs` (kompresi foto), `jspdf` (ekspor PDF), `@nuxtjs/device` (deteksi perangkat) |
 
 ## 🚀 Menjalankan
@@ -105,6 +114,8 @@ Skema dikelola lewat migrasi di `pocketbase/pb_migrations/`, antara lain:
 
 `student_users`, `teacher_users`, `iduka` + `iduka_users`, `pembimbing`, `pemetaan_pkl`, `pemetaan_pembimbing`, `pemetaan_group_by_iduka`, `jurnal` + `jurnal_komentar` + `jurnal_publik` + `ttd_jurnal`, `absen`, `rekapan_bulanan`, `nilai`, `proyek`, `cp` + `elemen_cp`, `sertifikat`, `agenda_info`, `lokasi_pkl`, `walikelas`, `rombel`, `pengaturan`, `program_keahlian`, `siswa`
 
+Koleksi `nilai` dilindungi aturan akses: hanya **guru pembimbing** terkait atau **instansi** terpetakan yang dapat membuat/memperbarui nilai (delete dinonaktifkan).
+
 > ⚠️ `pb_data/` berisi **data nyata** — berhati-hatilah saat membagikan atau melakukan commit.
 
 ## 📜 Riwayat Versi
@@ -112,6 +123,7 @@ Skema dikelola lewat migrasi di `pocketbase/pb_migrations/`, antara lain:
 Riwayat lengkap ada di [`epkl4-siswa-main/CHANGELOG.md`](epkl4-siswa-main/CHANGELOG.md). Ringkasan:
 
 - **v3.0** (18 Agustus 2026) — major version, perbaikan semua fitur
+- **Pembaruan 21 November 2026** — kontrol akses nilai (guru & instansi), perbaikan jurnal SPA, konsistensi mode terang, polesan logo & login
 - **v2.10-rc** — pemisahan Guru Pembimbing dengan PIC Sekolah di IDUKA; jurnal & proyek wajib terpetakan
 - **v2.8** — fitur Self Project; navigasi elemen ke NavTop, proyek ke NavBottom
 - **v2.7** — konversi & kompresi foto jurnal otomatis; filter jurnal per Elemen
