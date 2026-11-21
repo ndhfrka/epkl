@@ -12,12 +12,7 @@
       <!-- filter bulan & tahun: ganti bulan akan membuka data bulan tersebut -->
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div class="d-flex gap-2">
-          <select v-model="filterBulan" class="form-select form-select-sm agenda-filter" aria-label="Pilih bulan">
-            <option v-for="(b, i) in bulanList" :key="i" :value="i + 1">{{ b }}</option>
-          </select>
-          <select v-model="filterTahun" class="form-select form-select-sm agenda-filter" aria-label="Pilih tahun">
-            <option v-for="t in tahunList" :key="t" :value="t">{{ t }}</option>
-          </select>
+          <FilterBulanTahun v-model:bulan="filterBulan" v-model:tahun="filterTahun" :bulan-list="bulanList" :tahun-list="tahunList" />
         </div>
         <span v-if="!isInstansi && !isGuru" class="text-muted agenda-hint">Klik kotak tanggal untuk menandai: ✓ hadir → S sakit → I izin → ✗ alpa → kosong <span class="versi-tag">v3</span></span>
       </div>

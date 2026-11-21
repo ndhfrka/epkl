@@ -79,13 +79,7 @@
       <div>
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <div class="d-flex gap-2">
-            <select v-model="filterBulan" class="form-select form-select-sm agenda-filter" aria-label="Filter bulan">
-              <option value="0">Semua Bulan</option>
-              <option v-for="(b, i) in bulanList" :key="i" :value="i + 1">{{ b }}</option>
-            </select>
-            <select v-model="filterTahun" class="form-select form-select-sm agenda-filter" aria-label="Filter tahun">
-              <option v-for="t in tahunList" :key="t" :value="t">{{ t }}</option>
-            </select>
+            <FilterBulanTahun v-model:bulan="filterBulan" v-model:tahun="filterTahun" :bulan-list="bulanList" :tahun-list="tahunList" izinkan-semua />
           </div>
           <div class="d-flex gap-2 align-items-center">
             <nuxt-link v-if="!isInstansi && !isGuru" to="/jurnal/tambah" class="btn btn-dark btn-sm border border-2 border-dark px-3 py-2 fw-semibold">
