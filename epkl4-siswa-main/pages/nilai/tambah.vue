@@ -88,7 +88,11 @@ let isSending = ref(false)
 let isSaved = ref(false)
 let isError = ref(false)
 let isLoadingMetaPemetaan = ref(true)
-let prokel = user.user.value?.program_keahlian
+// teacher_users menyimpan program_keahlian sebagai relasi multi (array),
+// sedangkan field nilai.program_keahlian relasi tunggal -> ambil elemen pertama
+let prokel = Array.isArray(user.user.value?.program_keahlian)
+  ? (user.user.value?.program_keahlian[0] || '')
+  : (user.user.value?.program_keahlian || '')
 let siswa_id = user.user.value?.siswa
 let meta_pemetaan = ref()
 // [NILAI HANYA GURU/INSTANSI] mengisi/memperbarui nilai via query
@@ -134,7 +138,12 @@ async function buatBaru() {
       // guru pembimbing / instansi: perbarui nilai lama atau buat nilai
       // baru untuk siswa yang dituju (siswa tidak lagi mengirim nilai)
       if (editId) {
-        await client.collection('nilai').update(editId, form.value)
+        // jangan kirim field file bila tidak diganti: string kosong pada
+        // PocketBase berarti MENGHAPUS file lama
+        let payload = { ...form.value }
+        if (!(payload.foto_jurnal_nilai instanceof Blob)) delete payload.foto_jurnal_nilai
+        if (!(payload.logo instanceof Blob)) delete payload.logo
+        await client.collection('nilai').update(editId, payload)
       } else {
         await client.collection('nilai').create(form.value)
       }
@@ -147,6 +156,8 @@ async function buatBaru() {
     isSending.value = false
     isSaved.value = false
     isError.value = true
+    // tampilkan penyebabnya agar tidak gagal diam-diam
+    alert('Gagal menyimpan nilai: ' + (err?.response?.message || err?.message || 'kesalahan tak diketahui'))
   }
 }
 
@@ -254,6 +265,9 @@ async function prefillInstansi() {
         form.value.isEntrust = !!(res.pj_penandatangan || res.nama_pj_penandatangan)
         form.value.siswa = res.siswa
         form.value.iduka = res.iduka
+        // pulihkan juga relasi lain agar tidak ikut terosong saat update
+        form.value.pembimbing = res.pembimbing || ''
+        form.value.program_keahlian = res.program_keahlian || ''
         if (res.expand?.siswa) targetSiswaNama.value = res.expand.siswa.nama
       }
     } else if (targetSiswa) {
@@ -271,7 +285,11 @@ async function prefillInstansi() {
         if (pm) form.value.iduka = pm.iduka
       } catch(e) {}
     }
-  } catch(e) {}
+  } catch(e) {
+    // jangan gagal diam-diam: beri tahu pengguna kenapa data tidak tampil
+    alert('Gagal memuat data nilai: ' + (e?.response?.message || e?.message || 'kesalahan tak diketahui'))
+    navigateTo('/nilai')
+  }
   isLoadingMetaPemetaan.value = false
 }
 
