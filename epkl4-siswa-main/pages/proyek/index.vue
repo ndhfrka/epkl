@@ -29,6 +29,7 @@
         <span><b class="lg lg-s">S</b> Sakit</span>
         <span><b class="lg lg-i">I</b> Izin</span>
         <span><b class="lg lg-x">A</b> Alpa / Tidak masuk</span>
+        <span><b class="lg lg-l">L</b> Libur (otomatis)</span>
       </div>
 
       <div class="agenda-paper">
@@ -85,6 +86,7 @@
                 </td>
                 <td v-for="h in jumlahHari" :key="a.id + '-' + h" class="col-hari cell-day" :class="a.marks[h] ? 'mark-' + a.marks[h] : ''" title="Klik: ✓ → S → I → A → kosong" @click="toggleDay(a, h)">
                   <span v-if="a.marks[h]">{{ markSymbol(a.marks[h]) }}</span>
+                  <span v-else-if="liburPada(h)" class="mark-libur">L</span>
                 </td>
               </tr>
               <template v-if="!isInstansi && !isGuru">
@@ -100,7 +102,7 @@
                     </template>
                     <span v-else class="fill-hint" @click="startNew('baru-' + n)"><i class="bi bi-plus-lg"></i> tulis kegiatan</span>
                   </td>
-                  <td v-for="h in jumlahHari" :key="'kosong-' + n + '-' + h" class="col-hari cell-day" title="Klik untuk tandai hadir di tanggal ini" @click="startDayBaru(n, h)"></td>
+                  <td v-for="h in jumlahHari" :key="'kosong-' + n + '-' + h" class="col-hari cell-day" title="Klik untuk tandai hadir di tanggal ini" @click="startDayBaru(n, h)"><span v-if="liburPada(h)" class="mark-libur">L</span></td>
                 </tr>
               </template>
             </tbody>
@@ -118,6 +120,7 @@
 
 <script setup>
 import { onBeforeRouteLeave } from 'vue-router'
+import { apakahTanggalMerah, parseHariPkl } from '~/composables/hariLibur'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: "Absen PKL — e-PKL / SMK AL-FATAH BANJARNEGARA." })
@@ -128,6 +131,9 @@ let siswa_id = user?.user.value.siswa
 let isInstansi = user.user.value?.role === 'instansi'
 let isGuru = user.user.value?.role === 'guru'
 let isLoading = ref(true)
+
+// [FITUR LIBUR OTOMATIS] jadwal hari PKL siswa (dari pemetaan -> iduka.hari_pkl)
+let hariPklList = ref([])
 
 // ====== STATUS SIMPAN: tampil di layar supaya jelas datanya masuk atau gagal ======
 let simpanStatus = ref({ type: 'ok', text: '' })
@@ -169,6 +175,29 @@ async function getAbsen() {
     // instansi: hanya absen milik siswa yang dipantau (pemetaan terbaru) agar sama dengan data siswa
     let sidInstansi = (isInstansi || isGuru) ? await useSiswaDipantauAkunId() : null
     let filterAbsen = (isInstansi || isGuru) ? `user='${sidInstansi || "tidak-ada"}'` : `user="${user.user.value.id}"`
+    // [FITUR LIBUR OTOMATIS] muat jadwal hari PKL siswa yang absennya sedang
+    // dilihat (siswa: milik sendiri; guru/instansi: siswa yang dipantau).
+    // CATATAN: pemetaan.siswa menunjuk koleksi SISWA (bukan id akun), sama
+    // seperti yang dilakukan halaman beranda (user.siswa / akun->siswa).
+    try {
+      let sidSiswa = user.user.value?.siswa || ''
+      if (isInstansi || isGuru) {
+        const uAkun = await client.collection('student_users').getOne(sidInstansi || 'x', { fields: 'id,siswa', requestKey: null })
+        sidSiswa = uAkun?.siswa || ''
+      }
+      if (sidSiswa) {
+        const resPem = await client.collection('pemetaan').getList(1, 1, {
+          filter: `siswa='${sidSiswa}'`,
+          expand: 'iduka',
+          requestKey: null
+        })
+        hariPklList.value = parseHariPkl(resPem?.items?.[0]?.expand?.iduka?.hari_pkl)
+      } else {
+        hariPklList.value = parseHariPkl(null)
+      }
+    } catch (_) {
+      hariPklList.value = parseHariPkl(null)
+    }
     let res = await client.collection('absen').getFullList({
       filter: filterAbsen,
       sort: '+created',
@@ -196,7 +225,21 @@ async function getAbsen() {
 // ditampilkan sebagai huruf 'A' di kolom absen.
 const MARK_CYCLE = ['v', 's', 'i', 'x']
 function markSymbol(m) {
-  return { v: '✓', s: 'S', i: 'I', x: 'A' }[m] || ''
+  return { v: '✓', s: 'S', i: 'I', x: 'A', l: 'L' }[m] || ''
+}
+
+// ====== [FITUR LIBUR OTOMATIS] ======
+// Sel kolom absen menampilkan "L" otomatis (tanpa menulis ke database)
+// bila tanggal itu libur: bukan hari PKL siswa (hari_pkl) atau tanggal
+// merah (libur nasional). Jurnal tetap kosong pada hari tersebut dan
+// tandaiAlphaOtomatis() tidak menandai alpa di hari libur.
+const NAMA_HARI_MINGGU = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+function liburPada(h) {
+  const t = new Date(filterTahun.value, filterBulan.value - 1, h)
+  // tanggal melebihi isi bulan (mis. 30/31 Februari) -> biarkan kosong
+  if (t.getDate() !== h || t.getMonth() !== filterBulan.value - 1) return false
+  if (apakahTanggalMerah(t)) return true
+  return !hariPklList.value.includes(NAMA_HARI_MINGGU[t.getDay()])
 }
 
 // ====== GEOFENCING ======
@@ -825,6 +868,11 @@ async function getInfoSeed() {
 .cell-day.mark-s { color: #b45309; }
 .cell-day.mark-i { color: #1d4ed8; }
 .cell-day.mark-x { color: #b91c1c; }
+
+/* [FITUR LIBUR OTOMATIS] L = libur (bukan hari PKL / tanggal merah) */
+.cell-day.mark-l,
+.cell-day .mark-libur { color: #94a3b8; font-weight: 700; }
+.lg.lg-l { color: #94a3b8; }
 
 .agenda-empty-row td {
   height: 36px;

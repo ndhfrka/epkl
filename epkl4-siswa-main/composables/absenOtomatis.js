@@ -1,6 +1,7 @@
 import { usePocketBaseClient } from "./pocketBaseClient"
 import { usePocketBaseUser } from "./pocketBaseUser"
 import { usePengingat } from "./usePengingat"
+import { apakahTanggalMerah, parseHariPkl } from './hariLibur'
 
 // JAM BATAS PENGISIAN JURNAL (WIB) — siswa tidak boleh mengisi setelah jam ini.
 // Jika belum mengisi sampai jam ini, otomatis ditandai ALPHA.
@@ -141,6 +142,22 @@ export const useAbsenOtomatis = () => {
       const bulan = now.getMonth() + 1
       const tahun = now.getFullYear()
       client.autoCancellation(false)
+
+      // [FITUR LIBUR] hari ini libur (bukan jadwal PKL siswa / tanggal merah)
+      // -> JANGAN tandai ALPA; kolom absen menampilkan "L" otomatis dan
+      //    jurnal tetap kosong tanpa dianggap buruk.
+      try {
+        // pemetaan.siswa menunjuk koleksi SISWA (bukan id akun)
+        const sidSiswa = user.user.value?.siswa || ''
+        const resPem = sidSiswa ? await client.collection('pemetaan').getList(1, 1, {
+          filter: `siswa='${sidSiswa}'`,
+          expand: 'iduka',
+          requestKey: null
+        }) : null
+        const jadwal = parseHariPkl(resPem?.items?.[0]?.expand?.iduka?.hari_pkl)
+        const NAMA_HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+        if (!jadwal.includes(NAMA_HARI[now.getDay()]) || apakahTanggalMerah(now)) return
+      } catch (_) { /* jadwal gagal dimuat -> lanjut perilaku lama */ }
 
       // Cek apakah sudah ada jurnal final (bukan draft) hari ini
       let sudahAdaJurnal = false
