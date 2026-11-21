@@ -39,14 +39,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* [GANTI LOGO] Kotak logo tidak lagi biru (primary-container):
-     dipilih hijau lembut gradasi agar selaras dengan warna dominan
-     logo SMK AL-FATAH (hijau #60a848 + emas #f0d818) dan tetap
-     hangat di samping aksen biru aplikasi e-PKL. */
-  background: linear-gradient(150deg, #f0f7ea 0%, #ddefd2 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(96, 168, 72, 0.35),
-    var(--m3-elevation-level-2, 0 6px 16px rgba(0, 0, 0, 0.3));
+  /* [LOGO OPSI 1] Tampilan bersih & menyatu: kotak latar hijau pastel
+     dihapus total (background transparan, tanpa ring/shadow) sehingga
+     tidak ada efek background ganda di belakang logo sekolah. Elemen
+     ini kini hanya berperan sebagai wadah/spacing logo. */
+  background: transparent;
+  box-shadow: none;
   border-radius: 32px;
 }
 .m3-login-header__avatar {
@@ -56,17 +54,23 @@
   align-items: center;
   justify-content: center;
   border-radius: 24px;
-  /* [GANTI LOGO] kapsul putih di atas kotak hijau lembut agar artwork
-     logo sekolah (latar transparan) selalu tajam & kontras di tema
-     gelap maupun terang; cincin hijau tipis menyatu dengan kotak */
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(96, 168, 72, 0.22);
+  /* [LOGO OPSI 1] Kapsul putih juga dihapus — logo (PNG transparan)
+     tampil langsung di atas card gelap dengan sedikit padding dari
+     kapsul ini agar tidak menempel tepi; kontras tetap terjaga. */
+  background: transparent;
+  box-shadow: none;
 }
 .m3-login-header__logo-img {
   width: 56px;
   height: 56px;
   object-fit: contain;
   display: block;
+  /* [LOGO OPSI 1] Subtle shadow mengikuti bentuk alpha logo (bukan
+     kotak) agar logo jelas di card gelap; halo putih tipis membantu
+     detail gelap pada artwork tetap terbaca. */
+  filter:
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.10))
+    drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
 }
 
 .m3-login-header__brand {

@@ -214,23 +214,21 @@ let username = user.user.value?.username
   width: 68px !important;
   height: 68px !important;
   border-radius: 20px !important;
-  /* [GANTI LOGO] Samakan dengan Header.vue: kotak logo hijau lembut
-     (senada logo SMK AL-FATAH: hijau #60a848 + emas #f0d818),
-     bukan lagi gradient biru #1e3a8a -> #2563eb */
-  background: linear-gradient(150deg, #f0f7ea 0%, #ddefd2 100%) !important;
-  box-shadow:
-    inset 0 0 0 1px rgba(96, 168, 72, 0.4),
-    0 8px 20px rgba(15, 23, 42, 0.45) !important;
+  /* [LOGO OPSI 1] Konsisten dengan Header.vue: kotak latar hijau
+     dihapus — logo transparan tampil langsung di atas card gelap
+     side-nav, tanpa efek background ganda. */
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 :deep(.m3-login-header__avatar) {
   width: 46px !important;
   height: 46px !important;
   border-radius: 14px !important;
-  /* kapsul putih solid agar artwork logo transparan tetap tajam;
-     cincin hijau tipis menyatu dengan kotak hijau lembut */
-  background: #ffffff !important;
-  box-shadow: inset 0 0 0 1px rgba(96, 168, 72, 0.22) !important;
+  /* [LOGO OPSI 1] kapsul putih dihapus juga; berfungsi sebagai
+     spacing saja, background & ring dibuang */
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 :deep(.m3-login-header__avatar-icon) {
