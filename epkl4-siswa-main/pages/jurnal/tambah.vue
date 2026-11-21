@@ -1,7 +1,48 @@
 <template>
   <div class="tambah-jurnal-wrapper">
+    <!-- [SATU JURNAL PER HARI] BANNER TERKUNCI: jurnal hari ini sudah divalidasi guru,
+         sehingga tidak bisa mengunggah jurnal lagi dan jurnalnya terkunci -->
+    <div v-if="havePostJournalToday && sudahDivalidasi" class="card modern-card shadow-lg">
+      <div class="card-body p-4 text-center">
+        <div class="mb-3">
+          <i class="bi bi-lock-fill text-danger" style="font-size: 3rem;"></i>
+        </div>
+        <h2 class="fw-bold text-white mb-2">Jurnal Sudah Divalidasi</h2>
+        <p class="text-secondary mb-3">
+          Kamu sudah mengunggah jurnal untuk hari ini dan jurnal itu telah <strong class="text-success">divalidasi guru</strong>.<br>
+          Satu hari hanya boleh satu jurnal, dan jurnal yang sudah divalidasi tidak dapat diunggah atau diubah lagi.
+        </p>
+        <div>
+          <NuxtLink to="/jurnal" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="bi bi-arrow-left me-1"></i> Kembali ke Jurnal
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
+    <!-- [SATU JURNAL PER HARI] BANNER SUDAH MENGISI: jurnal hari ini sudah ada,
+         masih boleh DIUBAH dari halaman Jurnal selama belum divalidasi guru -->
+    <div v-else-if="havePostJournalToday" class="card modern-card shadow-lg">
+      <div class="card-body p-4 text-center">
+        <div class="mb-3">
+          <i class="bi bi-journal-check text-success" style="font-size: 3rem;"></i>
+        </div>
+        <h2 class="fw-bold text-white mb-2">Jurnal Hari Ini Sudah Terisi</h2>
+        <p class="text-secondary mb-3">
+          Kamu sudah mengunggah jurnal untuk hari ini — satu hari hanya boleh <strong class="text-warning">satu jurnal</strong>.<br>
+          Selama belum divalidasi guru, kamu masih bisa <strong class="text-success">mengubahnya</strong> dari halaman Jurnal:
+          klik ikon pensil pada baris jurnal hari ini.
+        </p>
+        <div>
+          <NuxtLink to="/jurnal" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-journal-text me-1"></i> Buka Halaman Jurnal
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
     <!-- BANNER BATAS WAKTU: muncul jika jam sudah ≥ 18.00 -->
-    <div v-if="sudahMelampauiBatas" class="card modern-card shadow-lg">
+    <div v-else-if="sudahMelampauiBatas" class="card modern-card shadow-lg">
       <div class="card-body p-4 text-center">
         <div class="mb-3">
           <i class="bi bi-clock-fill text-danger" style="font-size: 3rem;"></i>
@@ -419,6 +460,10 @@ let form = ref({
 })
 
 let havePostJournalToday = ref(false)
+// [SATU JURNAL PER HARI] record jurnal yang sudah diunggah hari ini (jika ada)
+let jurnalHariIni = ref(null)
+// [KUNCI VALIDASI] jurnal hari ini sudah divalidasi guru -> terkunci, tidak bisa diunggah/diubah lagi
+let sudahDivalidasi = computed(() => !!(jurnalHariIni.value && jurnalHariIni.value.isValid === true))
 let today = useServerDay()
 
 // ========================================================================
@@ -684,6 +729,20 @@ async function cekGeofencingJurnal() {
 async function buatJurnalBaru(isDraft) {
   if ((user.user.value?.role ?? '') === 'guru') return
 
+  // [SATU JURNAL PER HARI] tolak unggah kedua pada hari yang sama:
+  // satu hari hanya boleh satu jurnal. Jurnal hari ini tetap boleh
+  // DIUBAH dari halaman Jurnal (ikon pensil) selama belum divalidasi
+  // guru; setelah divalidasi (isValid=true) terkunci permanen.
+  if (havePostJournalToday.value) {
+    if (sudahDivalidasi.value) {
+      alert('Jurnal hari ini sudah divalidasi guru dan tidak dapat diunggah atau diubah lagi.')
+    } else {
+      alert('Kamu sudah mengunggah jurnal hari ini (satu jurnal per hari).\n\nKamu masih bisa MENGUBAH jurnal itu dari halaman Jurnal — klik ikon pensil pada baris hari ini — selama belum divalidasi guru.')
+    }
+    navigateTo('/jurnal')
+    return
+  }
+
   if (!form.value.deskripsi.trim()) {
     alert('Deskripsi kegiatan wajib diisi.')
     return
@@ -787,6 +846,8 @@ async function isTodayPostJournal() {
       })
     if (response) {
       let res = response
+      // simpan record mentah: isValid dipakai utk memutuskan kunci edit
+      jurnalHariIni.value = res
       const date = new Date(res.created)
       const options = { dateStyle: "long" }
       res.created = new Intl.DateTimeFormat('id-ID', options).format(date)
