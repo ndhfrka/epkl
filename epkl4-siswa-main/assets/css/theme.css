@@ -1163,8 +1163,6 @@ html[data-tema='terang'] .bento-card__main-link:hover,
 html[data-tema='terang'] .btn-preset:hover,
 html[data-tema='terang'] .iduka-pill,
 html[data-tema='terang'] .versi-tag,
-html[data-tema='terang'] .btn-jurusan--active,
-html[data-tema='terang'] .btn-preset--active,
 html[data-tema='terang'] .modern-input:focus,
 html[data-tema='terang'] .modern-select:focus,
 html[data-tema='terang'] .modern-textarea:focus {
@@ -1202,5 +1200,134 @@ html[data-tema='terang'] .nav-link-custom--danger .nav-icon,
 html[data-tema='terang'] .recap-stat--danger .recap-stat__value,
 html[data-tema='terang'] .simpan-err {
   color: #dc2626;
+}
+
+/* ============================================================
+   [REVISI DASHBOARD] Kontras halaman dashboard (pages/index.vue)
+   Kartu-kartu dashboard memakai latar gelap rgba(15,23,42,.8)
+   di style komponen, sehingga di mode terang teks putih/halus
+   jadi kabur. Blok ini menerjemahkannya: permukaan terang +
+   teks gelap. Berlaku untuk desktop & mobile (spesifisitas
+   0-2-1 mengalahkan style scoped, termasuk di dalam @media).
+   Tanpa !important pada kartu agar efek :hover tetap hidup.
+   --- */
+
+/* --- Permukaan kartu: gelap -> terang --- */
+html[data-tema='terang'] .monitor-bar,
+html[data-tema='terang'] .bento-card,
+html[data-tema='terang'] .metric-card,
+html[data-tema='terang'] .recap-card,
+html[data-tema='terang'] .modal-card-custom,
+html[data-tema='terang'] .modal-siswa-card {
+  background: rgba(243, 246, 251, 0.97);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+html[data-tema='terang'] .bento-card--featured {
+  background: linear-gradient(180deg, rgba(224, 231, 250, 0.55) 0%, rgba(243, 246, 251, 0.97) 100%);
+  border-color: rgba(99, 102, 241, 0.45);
+}
+
+html[data-tema='terang'] .hero-banner {
+  background: linear-gradient(135deg, rgba(228, 233, 244, 0.96) 0%, rgba(240, 243, 249, 0.94) 100%);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+/* --- Input & textarea pada form/modal dashboard --- */
+html[data-tema='terang'] .modern-input,
+html[data-tema='terang'] .modern-textarea,
+html[data-tema='terang'] .modern-select {
+  background: rgba(248, 250, 253, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  color: #0f1729 !important;
+  -webkit-text-fill-color: #0f1729 !important;
+}
+
+html[data-tema='terang'] .modern-input::placeholder,
+html[data-tema='terang'] .modern-textarea::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+}
+
+html[data-tema='terang'] .modern-select option {
+  background: #ffffff;
+  color: #0f1729;
+}
+
+/* --- Judul & angka: putih -> gelap (utama agar terbaca) --- */
+html[data-tema='terang'] .section-title,
+html[data-tema='terang'] .hero-student-name,
+html[data-tema='terang'] .action-card__title,
+html[data-tema='terang'] .bento-card__val,
+html[data-tema='terang'] .metric-card__number,
+html[data-tema='terang'] .recap-card__title,
+html[data-tema='terang'] .recap-stat__value,
+html[data-tema='terang'] .member-name,
+html[data-tema='terang'] .day-name,
+html[data-tema='terang'] .modal-card-custom__title {
+  color: #0f1729;
+}
+
+/* --- Aksen sky/cyan -> sky-700 agar terbaca di latar terang --- */
+html[data-tema='terang'] .recap-stat--info .recap-stat__value,
+html[data-tema='terang'] .alert-empty-jurusan,
+html[data-tema='terang'] .action-card--info .action-card__icon {
+  color: #0369a1;
+}
+
+/* --- Ikon bento indigo/violet pastel -> pekat --- */
+html[data-tema='terang'] .bento-card__icon--indigo { color: #4338ca; }
+html[data-tema='terang'] .bento-card__icon--purple { color: #6d28d9; }
+
+/* --- Badge pastel -> pekat agar terbaca --- */
+html[data-tema='terang'] .badge-pill--cyan    { color: #0e7490; }
+html[data-tema='terang'] .badge-pill--purple  { color: #6d28d9; }
+html[data-tema='terang'] .badge-pill--emerald { color: #047857; }
+html[data-tema='terang'] .badge-pill--amber   { color: #92400e; }
+
+/* --- Chip hari/jam/preset: latar putih transparan tidak
+       terlihat di mode terang -> chip abu gelap tipis --- */
+html[data-tema='terang'] .day-chip,
+html[data-tema='terang'] .time-pill,
+html[data-tema='terang'] .day-toggle-card,
+html[data-tema='terang'] .btn-preset {
+  background: rgba(15, 23, 42, 0.05);
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+html[data-tema='terang'] .time-pill { color: #334155; }
+html[data-tema='terang'] .day-chip--active {
+  background: rgba(99, 102, 241, 0.22);
+  border-color: rgba(99, 102, 241, 0.55);
+  color: #312e81;
+}
+html[data-tema='terang'] .day-toggle-card:hover {
+  background: rgba(15, 23, 42, 0.09);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+html[data-tema='terang'] .day-toggle-card--selected {
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* --- Garis pemisah putih pada kartu recap --- */
+html[data-tema='terang'] .recap-card__header {
+  border-bottom-color: rgba(15, 23, 42, 0.1);
+}
+
+/* --- Elemen bertekstur putih di ATAS latar biru pekat tetap
+       putih: tombol preset/jurusan aktif, ikon CTA, avatar,
+       badge ikon modal --- */
+html[data-tema='terang'] .btn-preset--active {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #3b82f6;
+}
+html[data-tema='terang'] .btn-preset--active,
+html[data-tema='terang'] .btn-jurusan--active,
+html[data-tema='terang'] .action-card--cta .action-card__icon,
+html[data-tema='terang'] .hero-avatar__fallback,
+html[data-tema='terang'] .member-avatar,
+html[data-tema='terang'] .modal-icon-badge {
+  color: #ffffff;
 }
 
