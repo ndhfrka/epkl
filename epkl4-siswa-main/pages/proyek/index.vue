@@ -86,12 +86,22 @@
                 </td>
                 <td v-for="h in jumlahHari" :key="a.id + '-' + h" class="col-hari cell-day" :class="a.marks[h] ? 'mark-' + a.marks[h] : ''" title="Klik: ✓ → S → I → A → kosong" @click="toggleDay(a, h)">
                   <span v-if="a.marks[h]">{{ markSymbol(a.marks[h]) }}</span>
-                  <span v-else-if="i === 0 && liburPada(h)" class="mark-libur">L</span>
                 </td>
+              </tr>
+              <!-- [FITUR LIBUR OTOMATIS] Setiap tanggal libur yang sudah tiba
+                   (waktu server sudah memasuki/mlewati tanggalnya) mendapat
+                   barisnya sendiri, alurnya sama seperti baris jurnal yang
+                   terisi: satu huruf L tepat di kolom tanggalnya. Baris libur
+                   tidak menimpa baris absen yang sudah terisi dan selnya
+                   tidak bisa diklik. -->
+              <tr v-for="(b, bi) in barisLibur" :key="'baris-libur-' + b.tanggal" class="agenda-empty-row baris-libur">
+                <td class="col-no text-center">{{ agendaItems.length + bi + 1 }}</td>
+                <td class="col-uraian"></td>
+                <td v-for="h in jumlahHari" :key="'libur-' + b.tanggal + '-' + h" class="col-hari cell-day"><span v-if="h === b.tanggal" class="mark-libur">L</span></td>
               </tr>
               <template v-if="!isInstansi && !isGuru">
                 <tr v-for="n in emptyRowCount" :key="'baris-kosong-' + n" class="agenda-empty-row">
-                  <td class="col-no text-center">{{ agendaItems.length + n }}</td>
+                  <td class="col-no text-center">{{ agendaItems.length + barisLibur.length + n }}</td>
                   <td class="col-uraian">
                     <template v-if="editingId === 'baru-' + n">
                       <input v-model="editingText" :id="'absen-input-baru-' + n" class="cell-input" type="text" @input="onCellInput" @keyup.enter="saveEdit()" @blur="saveEdit()" />
@@ -102,7 +112,7 @@
                     </template>
                     <span v-else class="fill-hint" @click="startNew('baru-' + n)"><i class="bi bi-plus-lg"></i> tulis kegiatan</span>
                   </td>
-                  <td v-for="h in jumlahHari" :key="'kosong-' + n + '-' + h" class="col-hari cell-day" title="Klik untuk tandai hadir di tanggal ini" @click="startDayBaru(n, h)"><span v-if="agendaItems.length === 0 && n === 1 && liburPada(h)" class="mark-libur">L</span></td>
+                  <td v-for="h in jumlahHari" :key="'kosong-' + n + '-' + h" class="col-hari cell-day" title="Klik untuk tandai hadir di tanggal ini" @click="startDayBaru(n, h)"></td>
                 </tr>
               </template>
             </tbody>
@@ -246,6 +256,28 @@ function liburPada(h) {
   if (apakahTanggalMerah(t)) return true
   return !hariPklList.value.includes(NAMA_HARI_MINGGU[t.getDay()])
 }
+
+// [FITUR LIBUR OTOMATIS] Daftar baris libur: satu baris untuk SETIAP tanggal
+// libur yang sudah tiba (bukan satu baris berisi banyak L). Tanggal yang
+// kolomnya sudah terisi tanda absen (✓/S/I/A) dilewati agar baris libur
+// tidak menimpa baris yang sudah diisi siswa. Hari libur mengikuti data
+// hari_pkl yang diupload siswa; tanggal merah selalu dianggap libur.
+const barisLibur = computed(() => {
+  const terisi = new Set()
+  agendaItems.value.forEach(a => {
+    Object.keys(a.marks || {}).forEach(k => {
+      const hn = Number(k)
+      if (a.marks[k] && hn >= 1 && hn <= jumlahHari) terisi.add(hn)
+    })
+  })
+  const rows = []
+  for (let h = 1; h <= jumlahHari; h++) {
+    if (terisi.has(h)) continue
+    if (!liburPada(h)) continue
+    rows.push({ tanggal: h })
+  }
+  return rows
+})
 
 // ====== GEOFENCING ======
 function ekstrakKoordinat(url) {
