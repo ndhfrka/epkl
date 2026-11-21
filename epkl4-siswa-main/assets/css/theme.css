@@ -948,46 +948,49 @@ select:autofill {
    dan diterapkan plugin tema.client.js sebelum render pertama.
    Semua komponen yang memakai var(--md-sys-color-*) ikut berubah;
    elemen dengan warna gelap yang di-hardcode ditimpa eksplisit di bawah.
+
+   [REVISI KONTRAS] Palet diredupkan (tidak menyilaukan) dan teks
+   abu/aksen digelapkan agar jelas terbaca di desktop & mobile.
    ================================================================ */
 html[data-tema='terang'] {
   --md-sys-color-primary: #1d4ed8;
   --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #dce7ff;
+  --md-sys-color-primary-container: #d6e2ff;
   --md-sys-color-on-primary-container: #0b2a6b;
-  --md-sys-color-secondary: #475692;
+  --md-sys-color-secondary: #44548f;
   --md-sys-color-on-secondary: #ffffff;
-  --md-sys-color-secondary-container: #e0e5f9;
+  --md-sys-color-secondary-container: #dbe1f6;
   --md-sys-color-on-secondary-container: #131c38;
-  --md-sys-color-tertiary: #6d28d9;
+  --md-sys-color-tertiary: #6527c9;
   --md-sys-color-on-tertiary: #ffffff;
-  --md-sys-color-tertiary-container: #ede4ff;
+  --md-sys-color-tertiary-container: #e9defc;
   --md-sys-color-on-tertiary-container: #351764;
   --md-sys-color-error: #dc2626;
   --md-sys-color-on-error: #ffffff;
   --md-sys-color-error-container: #ffdad6;
   --md-sys-color-on-error-container: #410002;
-  --md-sys-color-success: #16a34a;
+  --md-sys-color-success: #15803d;
   --md-sys-color-on-success: #ffffff;
-  --md-sys-color-warning: #d97706;
+  --md-sys-color-warning: #b45309;
   --md-sys-color-on-warning: #ffffff;
-  --md-sys-color-info: #0284c7;
+  --md-sys-color-info: #0369a1;
   --md-sys-color-on-info: #ffffff;
-  --md-sys-color-surface: #f4f6fb;
-  --md-sys-color-surface-dim: #dde1ea;
-  --md-sys-color-surface-bright: #ffffff;
-  --md-sys-color-surface-container-lowest: #ffffff;
-  --md-sys-color-surface-container-low: #f8f9fd;
-  --md-sys-color-surface-container: #f1f3f9;
-  --md-sys-color-surface-container-high: #e9edf5;
-  --md-sys-color-surface-container-highest: #dfe4ee;
-  --md-sys-color-on-surface: #1a2233;
-  --md-sys-color-on-surface-variant: #4b5568;
-  --md-sys-color-outline: #7a8290;
-  --md-sys-color-outline-variant: #d3d8e2;
+  --md-sys-color-surface: #e9edf3;
+  --md-sys-color-surface-dim: #d3d9e3;
+  --md-sys-color-surface-bright: #f7f9fc;
+  --md-sys-color-surface-container-lowest: #f3f6fa;
+  --md-sys-color-surface-container-low: #eef1f7;
+  --md-sys-color-surface-container: #e7ebf2;
+  --md-sys-color-surface-container-high: #dee4ee;
+  --md-sys-color-surface-container-highest: #d2d9e6;
+  --md-sys-color-on-surface: #0f1729;
+  --md-sys-color-on-surface-variant: #3a4356;
+  --md-sys-color-outline: #69707e;
+  --md-sys-color-outline-variant: #c5ccd8;
   /* variabel latar yang dipakai layout shell (fallback gelap di :root) */
-  --md-sys-color-background: #f4f6fb;
-  --md-sys-color-on-background: #1a2233;
-  --epkl-accent-soft: #2563eb;
+  --md-sys-color-background: #e9edf3;
+  --md-sys-color-on-background: #0f1729;
+  --epkl-accent-soft: #1d4ed8;
 }
 
 /* --- Timpa permukaan gelap yang di-hardcode di komponen.
@@ -997,68 +1000,207 @@ html[data-tema='terang'] {
 
 /* Topbar mobile (NavbarTop) */
 html[data-tema='terang'] .m3-topappbar {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  background: rgba(244, 247, 252, 0.92) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.1) !important;
   box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08) !important;
 }
 html[data-tema='terang'] .m3-topappbar--scrolled {
-  background: rgba(255, 255, 255, 0.96) !important;
+  background: rgba(246, 249, 253, 0.97) !important;
   border-bottom-color: rgba(37, 99, 235, 0.25) !important;
   box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12) !important;
 }
-html[data-tema='terang'] .m3-topappbar__title { color: #0f172a !important; }
+html[data-tema='terang'] .m3-topappbar__title { color: #0b1324 !important; }
 
 /* Tombol kaca di topbar (menu/avatar/tema/notifikasi) */
 html[data-tema='terang'] .glass-btn-leading {
-  background: rgba(15, 23, 42, 0.05);
-  border-color: rgba(15, 23, 42, 0.12);
-  color: #475569;
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #3f4a5f;
 }
+html[data-tema='terang'] .glass-btn-leading:hover { color: #1d4ed8; }
 
 /* Kartu sisi navigasi desktop (Nav) */
 html[data-tema='terang'] .modern-side-card {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.12) !important;
+  background: rgba(243, 246, 251, 0.94) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.14) !important;
 }
 
 /* Bottom navigation mobile (NavFixedBottom) */
 html[data-tema='terang'] .m3-navbar {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-top-color: rgba(15, 23, 42, 0.08) !important;
+  background: rgba(243, 246, 251, 0.94) !important;
+  border-top-color: rgba(15, 23, 42, 0.1) !important;
 }
 
-/* Autofill isi-otomatis di mode terang: latar putih + teks gelap */
+/* Autofill isi-otomatis di mode terang: latar lembut + teks gelap */
 html[data-tema='terang'] input:-webkit-autofill,
 html[data-tema='terang'] input:-webkit-autofill:hover,
 html[data-tema='terang'] input:-webkit-autofill:focus,
 html[data-tema='terang'] input:-webkit-autofill:active,
 html[data-tema='terang'] textarea:-webkit-autofill,
 html[data-tema='terang'] select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
-  -webkit-text-fill-color: #1a2233 !important;
-  caret-color: #1a2233 !important;
-  color: #1a2233 !important;
+  -webkit-box-shadow: 0 0 0 1000px #f3f6fa inset !important;
+  box-shadow: 0 0 0 1000px #f3f6fa inset !important;
+  -webkit-text-fill-color: #0f1729 !important;
+  caret-color: #0f1729 !important;
+  color: #0f1729 !important;
 }
 html[data-tema='terang'] input:autofill,
 html[data-tema='terang'] textarea:autofill,
 html[data-tema='terang'] select:autofill {
-  background-color: #ffffff !important;
-  color: #1a2233 !important;
-  -webkit-text-fill-color: #1a2233 !important;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  background-color: #f3f6fa !important;
+  color: #0f1729 !important;
+  -webkit-text-fill-color: #0f1729 !important;
+  box-shadow: 0 0 0 1000px #f3f6fa inset !important;
 }
 
 /* Seleksi teks & gradien latar di mode terang */
 html[data-tema='terang'] ::selection {
-  background: rgba(37, 99, 235, 0.22);
-  color: #0f172a;
+  background: rgba(37, 99, 235, 0.25);
+  color: #0b1324;
 }
 html[data-tema='terang'] body {
   background-image:
-    radial-gradient(55rem 30rem at 85% -10%, rgba(59, 130, 246, 0.08), transparent 60%),
-    radial-gradient(45rem 28rem at -15% 30%, rgba(37, 99, 235, 0.06), transparent 60%),
-    radial-gradient(40rem 24rem at 50% 110%, rgba(14, 116, 144, 0.05), transparent 60%);
+    radial-gradient(55rem 30rem at 85% -10%, rgba(59, 130, 246, 0.07), transparent 60%),
+    radial-gradient(45rem 28rem at -15% 30%, rgba(37, 99, 235, 0.05), transparent 60%),
+    radial-gradient(40rem 24rem at 50% 110%, rgba(14, 116, 144, 0.04), transparent 60%);
+}
+
+/* --- [REVISI KONTRAS] Gelapkan teks abu terang & aksen hardcode yang
+       dirancang untuk latar gelap, agar terbaca jelas di desktop & mobile.
+       Pemetaan warna asli -> pengganti:
+         #94a3b8 (slate-400)  -> #475569
+         #64748b (slate-500)  -> #334155
+         #cbd5e1 (slate-300)  -> #475569
+         #9ca3af (gray-400)   -> #4b5563
+         #60a5fa (blue-400)   -> #1d4ed8
+         #93c5fd (blue-300)   -> #1d4ed8
+         #34d399 (emerald-400)-> #047857
+         #fbbf24 (amber-400)  -> #92400e
+         #f87171 (red-400)    -> #dc2626
+         #3b82f6 (blue-500)   -> #1d4ed8
+       (TombolTema & halaman login dikecualikan — punya aturan sendiri.) --- */
+
+/* slate-400 -> slate-600 */
+html[data-tema='terang'] .action-desc,
+html[data-tema='terang'] .badge-hari-status--off,
+html[data-tema='terang'] .bento-card__label,
+html[data-tema='terang'] .bento-card__sub,
+html[data-tema='terang'] .btn-close-modal-sm,
+html[data-tema='terang'] .btn-info-circle,
+html[data-tema='terang'] .btn-jurusan,
+html[data-tema='terang'] .control-label,
+html[data-tema='terang'] .form-label-custom,
+html[data-tema='terang'] .galeri-card__desc,
+html[data-tema='terang'] .galeri-subtitle,
+html[data-tema='terang'] .header-subtitle,
+html[data-tema='terang'] .m3-navbar__icon,
+html[data-tema='terang'] .m3-navbar__link-inner,
+html[data-tema='terang'] .m3-topappbar__action,
+html[data-tema='terang'] .member-role,
+html[data-tema='terang'] .metric-card__desc,
+html[data-tema='terang'] .metric-card__label,
+html[data-tema='terang'] .modal-card-custom__subtitle,
+html[data-tema='terang'] .nav-icon,
+html[data-tema='terang'] .nav-link-custom,
+html[data-tema='terang'] .recap-stat--secondary .recap-stat__value,
+html[data-tema='terang'] .recap-stat__label,
+html[data-tema='terang'] .search-addon,
+html[data-tema='terang'] .section-subtitle,
+html[data-tema='terang'] .student-class {
+  color: #475569;
+}
+
+/* slate-500 -> slate-700 */
+html[data-tema='terang'] .btn-action-mini,
+html[data-tema='terang'] .day-chip,
+html[data-tema='terang'] .day-hint,
+html[data-tema='terang'] .day-status-pill--off,
+html[data-tema='terang'] .empty-galeri-icon,
+html[data-tema='terang'] .empty-team-icon,
+html[data-tema='terang'] .m3-navbar__label,
+html[data-tema='terang'] .m3-topappbar__subtitle,
+html[data-tema='terang'] .no-foto-box,
+html[data-tema='terang'] .time-arrow {
+  color: #334155;
+}
+
+/* slate-300 -> slate-600 */
+html[data-tema='terang'] .absen-legend,
+html[data-tema='terang'] .action-card__desc,
+html[data-tema='terang'] .badge-pill--slate,
+html[data-tema='terang'] .bento-card__empty,
+html[data-tema='terang'] .btn-preset,
+html[data-tema='terang'] .info-alert {
+  color: #475569;
+}
+
+/* gray-400 -> gray-600 */
+html[data-tema='terang'] .btn-action,
+html[data-tema='terang'] .fill-hint,
+html[data-tema='terang'] .info-empty {
+  color: #4b5563;
+}
+
+/* blue-400 / blue-300 / blue-500 -> blue-700 (tautan, ikon, hover) */
+html[data-tema='terang'] .action-card__link-text,
+html[data-tema='terang'] .action-icon--camera,
+html[data-tema='terang'] .bento-card__icon--blue,
+html[data-tema='terang'] .bento-card__main-link,
+html[data-tema='terang'] .btn-action-mini:hover,
+html[data-tema='terang'] .btn-info-circle:hover,
+html[data-tema='terang'] .glass-btn-leading:hover,
+html[data-tema='terang'] .hero-school-label,
+html[data-tema='terang'] .img-badge-jurusan,
+html[data-tema='terang'] .lg-i,
+html[data-tema='terang'] .m3-topappbar__action:hover,
+html[data-tema='terang'] .metric-card__chip,
+html[data-tema='terang'] .monitor-pill,
+html[data-tema='terang'] .nav-link-custom:hover .nav-icon,
+html[data-tema='terang'] .topbar-brand-badge,
+html[data-tema='terang'] .badge-pill--blue,
+html[data-tema='terang'] .bento-card__main-link:hover,
+html[data-tema='terang'] .btn-preset:hover,
+html[data-tema='terang'] .iduka-pill,
+html[data-tema='terang'] .versi-tag,
+html[data-tema='terang'] .btn-jurusan--active,
+html[data-tema='terang'] .btn-preset--active,
+html[data-tema='terang'] .modern-input:focus,
+html[data-tema='terang'] .modern-select:focus,
+html[data-tema='terang'] .modern-textarea:focus {
+  color: #1d4ed8;
+}
+
+/* emerald-400 -> emerald-700 */
+html[data-tema='terang'] .action-icon--gallery,
+html[data-tema='terang'] .badge-hari-status--work,
+html[data-tema='terang'] .bento-card__icon--emerald,
+html[data-tema='terang'] .day-status-pill--work,
+html[data-tema='terang'] .metric-card__chip--emerald,
+html[data-tema='terang'] .rating-badge--good,
+html[data-tema='terang'] .recap-card__badge,
+html[data-tema='terang'] .recap-stat--success .recap-stat__value {
+  color: #047857;
+}
+
+/* amber-400 -> amber-800 */
+html[data-tema='terang'] .action-card--warning .action-card__icon,
+html[data-tema='terang'] .alert-warning code,
+html[data-tema='terang'] .bento-card__icon--amber,
+html[data-tema='terang'] .lg-s,
+html[data-tema='terang'] .metric-card__chip--amber,
+html[data-tema='terang'] .rating-badge--warn,
+html[data-tema='terang'] .recap-stat--warning .recap-stat__value {
+  color: #92400e;
+}
+
+/* red-400 -> red-600 */
+html[data-tema='terang'] .btn-close-modal-sm:hover,
+html[data-tema='terang'] .lg-x,
+html[data-tema='terang'] .nav-link-custom--danger,
+html[data-tema='terang'] .nav-link-custom--danger .nav-icon,
+html[data-tema='terang'] .recap-stat--danger .recap-stat__value,
+html[data-tema='terang'] .simpan-err {
+  color: #dc2626;
 }
 
