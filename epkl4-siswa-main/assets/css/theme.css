@@ -1331,3 +1331,40 @@ html[data-tema='terang'] .modal-icon-badge {
   color: #ffffff;
 }
 
+/* --- [REVISI REKAP] chip statistik rekap kehadiran: tint gelap
+       yang setara dengan versi gelapnya agar tetap terbaca --- */
+html[data-tema='terang'] .recap-stat {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+html[data-tema='terang'] .recap-stat--success {
+  background: rgba(4, 120, 87, 0.10);
+  border-color: rgba(4, 120, 87, 0.30);
+}
+html[data-tema='terang'] .recap-stat--warning {
+  background: rgba(146, 64, 14, 0.10);
+  border-color: rgba(146, 64, 14, 0.30);
+}
+html[data-tema='terang'] .recap-stat--info {
+  background: rgba(3, 105, 161, 0.10);
+  border-color: rgba(3, 105, 161, 0.30);
+}
+html[data-tema='terang'] .recap-stat--danger {
+  background: rgba(185, 28, 28, 0.10);
+  border-color: rgba(185, 28, 28, 0.30);
+}
+html[data-tema='terang'] .recap-stat--secondary {
+  background: rgba(51, 65, 85, 0.08);
+  border-color: rgba(51, 65, 85, 0.25);
+}
+
+html[data-tema='terang'] .recap-stat__label {
+  color: #475569;
+}
+
+html[data-tema='terang'] .recap-stat--secondary .recap-stat__icon,
+html[data-tema='terang'] .recap-stat--secondary .recap-stat__value {
+  color: #475569;
+}
+
