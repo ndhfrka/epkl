@@ -67,41 +67,47 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(a, i) in agendaItems" :key="a.id">
-                <td class="col-no text-center">{{ i + 1 }}</td>
-                <td class="col-uraian">
-                  <template v-if="editingId === a.id">
-                    <input v-model="editingText" :id="'absen-input-' + a.id" class="cell-input" type="text" @input="onCellInput" @keyup.enter="saveEdit()" @blur="saveEdit()" />
-                    <div class="d-flex gap-1 mt-1">
-                      <button class="btn btn-primary btn-sm" :disabled="isSavingCell" @click="saveEdit()">Simpan</button>
-                      <button class="btn btn-outline-secondary btn-sm" @click="cancelEdit()">Batal</button>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <span class="uraian-text" :class="{ 'info-empty': !a.uraian }" :title="(isInstansi || isGuru) ? '' : 'Klik untuk mengubah'" @click="startEdit(a)">{{ a.uraian || ((isInstansi || isGuru) ? '—' : 'klik untuk isi') }}</span>
-                    <span v-if="!isInstansi && !isGuru" class="row-actions">
-                      <button class="btn-action" title="Hapus baris" @click="hapusAbsen(a)"><i class="bi bi-trash-fill"></i></button>
-                    </span>
-                  </template>
-                </td>
-                <td v-for="h in jumlahHari" :key="a.id + '-' + h" class="col-hari cell-day" :class="a.marks[h] ? 'mark-' + a.marks[h] : ''" title="Klik: ✓ → S → I → A → kosong" @click="toggleDay(a, h)">
-                  <span v-if="a.marks[h]">{{ markSymbol(a.marks[h]) }}</span>
-                </td>
-              </tr>
-              <!-- [FITUR LIBUR OTOMATIS] Setiap tanggal libur yang sudah tiba
-                   (waktu server sudah memasuki/mlewati tanggalnya) mendapat
-                   barisnya sendiri, alurnya sama seperti baris jurnal yang
-                   terisi: satu huruf L tepat di kolom tanggalnya. Baris libur
-                   tidak menimpa baris absen yang sudah terisi dan selnya
-                   tidak bisa diklik. -->
-              <tr v-for="(b, bi) in barisLibur" :key="'baris-libur-' + b.tanggal" class="agenda-empty-row baris-libur">
-                <td class="col-no text-center">{{ agendaItems.length + bi + 1 }}</td>
-                <td class="col-uraian"></td>
-                <td v-for="h in jumlahHari" :key="'libur-' + b.tanggal + '-' + h" class="col-hari cell-day"><span v-if="h === b.tanggal" class="mark-libur">L</span></td>
-              </tr>
+              <!-- [URUTAN TANGGAL + FITUR LIBUR OTOMATIS] baris absen dan
+                   baris libur digabung dalam satu daftar (barisAgenda) lalu
+                   diurutkan berdasarkan tanggalnya, sehingga baris libur yang
+                   tanggalnya lebih awal selalu tampil di atas baris jurnal
+                   yang tanggalnya lebih belakang. Contoh: libur tgl 1/8/15 =
+                   baris 1-3, jurnal tgl 20 = baris 4. Setiap tanggal libur
+                   yang sudah tiba (waktu server sudah memasuki/melewati
+                   tanggalnya) mendapat barisnya sendiri: satu huruf L tepat
+                   di kolom tanggalnya. Baris libur tidak menimpa baris absen
+                   yang sudah terisi dan selnya tidak bisa diklik. -->
+              <template v-for="(row, i) in barisAgenda" :key="row.key">
+                <tr v-if="row.jenis === 'absen'">
+                  <td class="col-no text-center">{{ i + 1 }}</td>
+                  <td class="col-uraian">
+                    <template v-if="editingId === row.absen.id">
+                      <input v-model="editingText" :id="'absen-input-' + row.absen.id" class="cell-input" type="text" @input="onCellInput" @keyup.enter="saveEdit()" @blur="saveEdit()" />
+                      <div class="d-flex gap-1 mt-1">
+                        <button class="btn btn-primary btn-sm" :disabled="isSavingCell" @click="saveEdit()">Simpan</button>
+                        <button class="btn btn-outline-secondary btn-sm" @click="cancelEdit()">Batal</button>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <span class="uraian-text" :class="{ 'info-empty': !row.absen.uraian }" :title="(isInstansi || isGuru) ? '' : 'Klik untuk mengubah'" @click="startEdit(row.absen)">{{ row.absen.uraian || ((isInstansi || isGuru) ? '—' : 'klik untuk isi') }}</span>
+                      <span v-if="!isInstansi && !isGuru" class="row-actions">
+                        <button class="btn-action" title="Hapus baris" @click="hapusAbsen(row.absen)"><i class="bi bi-trash-fill"></i></button>
+                      </span>
+                    </template>
+                  </td>
+                  <td v-for="h in jumlahHari" :key="row.absen.id + '-' + h" class="col-hari cell-day" :class="row.absen.marks[h] ? 'mark-' + row.absen.marks[h] : ''" title="Klik: ✓ → S → I → A → kosong" @click="toggleDay(row.absen, h)">
+                    <span v-if="row.absen.marks[h]">{{ markSymbol(row.absen.marks[h]) }}</span>
+                  </td>
+                </tr>
+                <tr v-else class="agenda-empty-row baris-libur">
+                  <td class="col-no text-center">{{ i + 1 }}</td>
+                  <td class="col-uraian"></td>
+                  <td v-for="h in jumlahHari" :key="'libur-' + row.tanggalLibur + '-' + h" class="col-hari cell-day"><span v-if="h === row.tanggalLibur" class="mark-libur">L</span></td>
+                </tr>
+              </template>
               <template v-if="!isInstansi && !isGuru">
                 <tr v-for="n in emptyRowCount" :key="'baris-kosong-' + n" class="agenda-empty-row">
-                  <td class="col-no text-center">{{ agendaItems.length + barisLibur.length + n }}</td>
+                  <td class="col-no text-center">{{ barisAgenda.length + n }}</td>
                   <td class="col-uraian">
                     <template v-if="editingId === 'baru-' + n">
                       <input v-model="editingText" :id="'absen-input-baru-' + n" class="cell-input" type="text" @input="onCellInput" @keyup.enter="saveEdit()" @blur="saveEdit()" />
@@ -276,6 +282,30 @@ const barisLibur = computed(() => {
     if (!liburPada(h)) continue
     rows.push({ tanggal: h })
   }
+  return rows
+})
+
+// [PERMINTAAN USER] baris absen & baris libur digabung lalu diurutkan
+// BERDASARKAN TANGGAL: baris libur yang tanggalnya lebih awal selalu tampil
+// di atas baris jurnal/absen yang tanggalnya lebih belakang (contoh: libur
+// tgl 1/8/15 = baris 1-3, jurnal tgl 20 = baris 4). Tanggal baris absen =
+// tanda tanggal terawal pada baris itu; baris absen yang belum memiliki
+// tanda tanggal sama sekali diletakkan paling bawah karena belum bisa
+// diurutkan.
+const barisAgenda = computed(() => {
+  const rows = []
+  agendaItems.value.forEach(a => {
+    let tanggal = Infinity
+    Object.keys(a.marks || {}).forEach(k => {
+      const hn = Number(k)
+      if (a.marks[k] && hn >= 1 && hn <= jumlahHari) tanggal = Math.min(tanggal, hn)
+    })
+    rows.push({ jenis: 'absen', key: 'absen-' + a.id, absen: a, tanggal })
+  })
+  barisLibur.value.forEach(b => {
+    rows.push({ jenis: 'libur', key: 'libur-' + b.tanggal, tanggal: b.tanggal, tanggalLibur: b.tanggal })
+  })
+  rows.sort((x, y) => (x.tanggal - y.tanggal) || (x.jenis === y.jenis ? 0 : (x.jenis === 'libur' ? -1 : 1)))
   return rows
 })
 
