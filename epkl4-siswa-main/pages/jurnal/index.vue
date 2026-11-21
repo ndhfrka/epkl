@@ -147,7 +147,10 @@
                     </template>
                     <template v-else>
                       {{ j.deskripsi }}
-                      <span v-if="!isInstansi && !isGuru" class="row-actions">
+                      <span v-if="!isInstansi && !isGuru && j.isValid" class="row-locked" title="Jurnal sudah divalidasi oleh Guru Pembimbing Jurusan — tidak dapat diedit atau dihapus">
+                        <i class="bi bi-lock-fill"></i>
+                      </span>
+                      <span v-else-if="!isInstansi && !isGuru" class="row-actions">
                         <button class="btn-action" title="Edit kegiatan" @click="startEdit(j)"><i class="bi bi-pencil-fill"></i></button>
                         <button class="btn-action" title="Hapus kegiatan" @click="hapusJurnal(j)"><i class="bi bi-trash-fill"></i></button>
                       </span>
@@ -389,6 +392,11 @@ let isSavingCell = ref(false)
 
 function startEdit(j) {
   if (isInstansi || isGuru) return
+  // [KUNCI VALIDASI] jurnal yang sudah divalidasi tidak boleh diedit siswa
+  if (j.isValid && !isGuru && !isInstansi) {
+    alert('Jurnal ini sudah divalidasi oleh Guru Pembimbing Jurusan sehingga tidak dapat diedit lagi.')
+    return
+  }
   editingId.value = j.id
   editingText.value = j.deskripsi
 }
@@ -455,6 +463,18 @@ async function saveCell(keepOpen = false) {
         })
       }
     } else {
+      // [KUNCI VALIDASI] cek ulang status validasi terkini sebelum menyimpan
+      try {
+        const cur = await client.collection('jurnal').getOne(editingId.value, { fields: 'id,isValid' })
+        if (cur && cur.isValid === true && !isGuru && !isInstansi) {
+          alert('Jurnal sudah divalidasi oleh Guru Pembimbing Jurusan sehingga tidak dapat diedit.')
+          await getJurnalAgenda()
+          cancelEdit()
+          return
+        }
+      } catch (_e) {
+        /* jika pengecekan gagal, lanjutkan penyimpanan seperti biasa */
+      }
       await client.collection('jurnal').update(editingId.value, { deskripsi: teks })
     }
     await getJurnalAgenda()
@@ -473,9 +493,25 @@ async function saveEdit() {
 
 async function hapusJurnal(j) {
   if (isInstansi || isGuru) return
+  // [KUNCI VALIDASI] jurnal yang sudah divalidasi tidak boleh dihapus siswa
+  if (j.isValid && !isGuru && !isInstansi) {
+    alert('Jurnal ini sudah divalidasi oleh Guru Pembimbing Jurusan sehingga tidak dapat dihapus lagi.')
+    return
+  }
   if (!confirm('Hapus kegiatan ini dari agenda?')) return
   client.autoCancellation(false)
   try {
+    // [KUNCI VALIDASI] cek ulang status validasi terkini sebelum menghapus
+    try {
+      const cur = await client.collection('jurnal').getOne(j.id, { fields: 'id,isValid' })
+      if (cur && cur.isValid === true && !isGuru && !isInstansi) {
+        alert('Jurnal sudah divalidasi oleh Guru Pembimbing Jurusan sehingga tidak dapat dihapus.')
+        await getJurnalAgenda()
+        return
+      }
+    } catch (_e) {
+      /* jika pengecekan gagal, lanjutkan penghapusan seperti biasa */
+    }
     await client.collection('jurnal').delete(j.id)
     // [SINKRONISASI ABSEN] baris absen otomatis dari kegiatan ini ikut dihapus:
     // cocokkan baris absen yang uraiannya = deskripsi kegiatan, hapus tanda pada
@@ -498,6 +534,11 @@ let editingTglText = ref('')
 
 function startEditTgl(j) {
   if (isInstansi || isGuru) return
+  // [KUNCI VALIDASI] jurnal yang sudah divalidasi tidak boleh diubah tanggalnya
+  if (j.isValid) {
+    alert('Jurnal ini sudah divalidasi oleh Guru Pembimbing Jurusan sehingga tanggalnya tidak dapat diubah.')
+    return
+  }
   editingTglId.value = j.id
   editingTglText.value = j.tanggalAgenda || ''
   nextTick(() => document.getElementById('tgl-input-' + j.id)?.focus())
@@ -508,11 +549,28 @@ async function saveTgl() {
   if (!editingTglId.value) return
   const id = editingTglId.value
   const val = editingTglText.value.trim()
-  editingTglId.value = null
   const item = jurnalAgenda.value.find(x => x.id === id)
-  if (!item || val === (item.tanggalAgenda || '')) return
+  // [KUNCI VALIDASI] jurnal tervalidasi tidak boleh diubah tanggalnya
+  if (item && item.isValid) {
+    alert('Jurnal sudah divalidasi oleh Guru Pembimbing Jurusan sehingga tanggalnya tidak dapat diubah.')
+    editingTglId.value = null
+    return
+  }
+  if (!val || val === (item?.tanggalAgenda || '')) { editingTglId.value = null; return }
+  editingTglId.value = null
   client.autoCancellation(false)
   try {
+    // [KUNCI VALIDASI] cek ulang status validasi terkini sebelum menyimpan
+    try {
+      const cur = await client.collection('jurnal').getOne(id, { fields: 'id,isValid' })
+      if (cur && cur.isValid === true && !isGuru && !isInstansi) {
+        alert('Jurnal sudah divalidasi oleh Guru Pembimbing Jurusan sehingga tanggalnya tidak dapat diubah.')
+        await getJurnalAgenda()
+        return
+      }
+    } catch (_e) {
+      /* jika pengecekan gagal, lanjutkan penyimpanan seperti biasa */
+    }
     await client.collection('jurnal').update(id, { tanggal_agenda: val })
     await getJurnalAgenda()
   } catch (e) {
@@ -1273,6 +1331,23 @@ onMounted(() => {
   float: right;
   display: inline-flex;
   gap: 2px;
+}
+
+/* [KUNCI VALIDASI] ikon gembok pengganti tombol edit/hapus pada
+   jurnal yang sudah divalidasi */
+.row-locked {
+  float: right;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 6px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  font-size: 0.78rem;
+  cursor: not-allowed;
 }
 
 .btn-action {
