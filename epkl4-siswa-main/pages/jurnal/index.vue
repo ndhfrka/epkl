@@ -244,7 +244,7 @@ let perPage = 30
 let form = ref({
   "deskripsi": "",
   "elemen": "",
-  "siswa": user.user.value.id,
+  "siswa": user.user.value?.id,
   "pembimbing": "",
   "iduka": "",
   "program_keahlian": prokel,
@@ -253,7 +253,7 @@ let form = ref({
 let formEdit = ref({
   "deskripsi": "",
   "elemen": "",
-  "siswa": user.user.value.id,
+  "siswa": user.user.value?.id,
   "pembimbing": "",
   "iduka": "",
   "program_keahlian": prokel,
@@ -266,6 +266,42 @@ watchEffect(() => {
   if (form.value) form.value.program_keahlian = prokel
   if (formEdit.value) formEdit.value.program_keahlian = prokel
 })
+// [FIX JURNAL KOSONG SAAT NAVIGASI] cache hasil useSiswaDipantauAkunId per
+// identitas: getJournals & getJurnalAgenda dulunya memanggilnya SECARA
+// BERSAMAAN saat halaman dibuka sehingga rantai fetch (pemetaan ->
+// student_users) dijalankan dobel; bila salah satu gagal sesaat, hasilnya
+// null -> filter siswa="tidak-ada" -> tabel agenda/jurnal kosong sampai
+// di-refresh manual. Sekarang cukup satu rantai fetch + dicache.
+let dipantauCache = { userId: '', id: null }
+async function getDipantauId() {
+  const uid = user.user.value?.id || ''
+  if (dipantauCache.userId === uid && dipantauCache.id !== null) return dipantauCache.id || null
+  let hasil = null
+  try {
+    hasil = await useSiswaDipantauAkunId()
+  } catch (e) {
+    console.error('[jurnal] gagal menentukan siswa yang dipantau:', e)
+    hasil = null
+  }
+  dipantauCache = { userId: uid, id: hasil || '' } // '' = sudah dicek, memang tidak ada
+  return hasil
+}
+// [FIX JURNAL KOSONG SAAT NAVIGASI] muat ulang otomatis begitu identitas
+// user siap/berubah. Saat berpindah halaman (SPA), keadaan user bisa saja
+// belum siap saat komponen dibuat; tanpa watch ini datanya tetap kosong
+// sampai user me-refresh halaman secara manual.
+let loadedForUserId = null
+watch(() => user.user.value?.id || null, (uid) => {
+  if (!uid || uid === loadedForUserId) return
+  loadedForUserId = uid
+  dipantauCache = { userId: '', id: null }
+  isInstansi = (user.user.value?.role ?? '') === 'instansi'
+  isGuru = (user.user.value?.role ?? '') === 'guru'
+  prokel = user.user.value?.program_keahlian ?? ''
+  if (form.value && !form.value.siswa) form.value.siswa = uid
+  getJournals()
+  getJurnalAgenda()
+}, { immediate: true })
 let isMovingPage = ref(false)
 let havePostJournalToday = ref(false)
 let today = useServerDay()
@@ -310,45 +346,67 @@ function parseAgendaDate(s) {
 
 async function getJurnalAgenda() {
   client.autoCancellation(false)
-  try {
-    // instansi: hanya agenda milik siswa yang dipantau (pemetaan terbaru) agar sama dengan data siswa
-    let sidInstansi = (isInstansi || isGuru) ? await useSiswaDipantauAkunId() : null
-    let res = []
+  // [FIX JURNAL KOSONG SAAT NAVIGASI] dua percobaan: saat berpindah halaman,
+  // identitas user / siswa yang dipantau bisa saja belum siap atau gagal
+  // sesaat sehingga tabel agenda tampil kosong sampai di-refresh manual.
+  for (let percobaan = 1; percobaan <= 2; percobaan++) {
     try {
-      const list = await client.collection('jurnal').getList(1, 500, {
-        filter: (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${user.user.value.id}"`,
-        sort: "+created",
-        fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid",
-        requestKey: null
-      })
-      res = list?.items || []
-      // jika lebih dari 500, ambil halaman berikutnya
-      if (list?.totalPages && list.totalPages > 1) {
-        for (let p = 2; p <= Math.min(list.totalPages, 5); p++) {
-          const np = await client.collection('jurnal').getList(p, 500, {
-            filter: (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${user.user.value.id}"`,
-            sort: "+created",
-            fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid"
-          })
-          if (np?.items?.length) res = res.concat(np.items)
+      // instansi: hanya agenda milik siswa yang dipantau (pemetaan terbaru) agar sama dengan data siswa
+      let sidInstansi = (isInstansi || isGuru) ? await getDipantauId() : null
+      const uid = user.user.value?.id
+      if (!isInstansi && !isGuru && !uid) return // tunggu watch identitas memuat ulang
+      const filterSiswa = (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${uid}"`
+      let res = []
+      try {
+        const list = await client.collection('jurnal').getList(1, 500, {
+          filter: filterSiswa,
+          sort: "+created",
+          fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid",
+          requestKey: null
+        })
+        res = list?.items || []
+        // jika lebih dari 500, ambil halaman berikutnya
+        if (list?.totalPages && list.totalPages > 1) {
+          for (let p = 2; p <= Math.min(list.totalPages, 5); p++) {
+            const np = await client.collection('jurnal').getList(p, 500, {
+              filter: filterSiswa,
+              sort: "+created",
+              fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid",
+              requestKey: null
+            })
+            if (np?.items?.length) res = res.concat(np.items)
+          }
         }
+      } catch (_e) {
+        // fallback: getFullList DENGAN batch 500 sebagai argumen pertama, BUKAN tanpa argumen
+        res = await client.collection('jurnal').getFullList(500, {
+          filter: filterSiswa,
+          sort: "+created",
+          fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid",
+          requestKey: null
+        })
       }
-    } catch (_e) {
-      // fallback: getFullList DENGAN batch 500 sebagai argumen pertama, BUKAN tanpa argumen
-      res = await client.collection('jurnal').getFullList(500, {
-        filter: (isInstansi || isGuru) ? `siswa="${sidInstansi || "tidak-ada"}"` : `siswa="${user.user.value.id}"`,
-        sort: "+created",
-        fields: "id,deskripsi,created,tanggal_agenda,ttd,isValid"
+      // [FIX JURNAL KOSONG] guru/instansi: hasil kosong pada percobaan pertama
+      // bisa karena sidInstansi gagal ditentukan sesaat -> coba sekali lagi
+      if ((isInstansi || isGuru) && res.length === 0 && percobaan === 1) {
+        dipantauCache = { userId: '', id: null }
+        await new Promise(r => setTimeout(r, 400))
+        continue
+      }
+      jurnalAgenda.value = res.map(j => {
+        const d = parseAgendaDate(j.tanggal_agenda) || new Date(j.created)
+        const hari = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d)
+        const tanggal = `${hari}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
+        return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, created: j.created || '', _d: d }
       })
+      return
+    } catch (e) {
+      if (percobaan === 2) {
+        jurnalAgenda.value = []
+        return
+      }
+      await new Promise(r => setTimeout(r, 400))
     }
-    jurnalAgenda.value = res.map(j => {
-      const d = parseAgendaDate(j.tanggal_agenda) || new Date(j.created)
-      const hari = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d)
-      const tanggal = `${hari}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
-      return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, created: j.created || '', _d: d }
-    })
-  } catch (e) {
-    jurnalAgenda.value = []
   }
 }
 
@@ -444,7 +502,7 @@ async function saveCell(keepOpen = false) {
     if (String(editingId.value).startsWith('baru-')) {
       // isi kegiatan baru langsung dari baris kosong agenda
       const rec = await client.collection('jurnal').create({
-        siswa: user.user.value.id,
+        siswa: user.user.value?.id,
         deskripsi: teks,
         isDraft: false,
         tanggal_agenda: defaultTanggalAgenda()
@@ -704,7 +762,7 @@ async function persistInfo(key, val) {
     if (agendaInfoId.value) {
       await client.collection('agenda_info').update(agendaInfoId.value, { [key]: val })
     } else {
-      let rec = await client.collection('agenda_info').create({ user: user.user.value.id, [key]: val })
+      let rec = await client.collection('agenda_info').create({ user: user.user.value?.id, [key]: val })
       agendaInfoId.value = rec?.id
     }
   } catch (e) {}
@@ -744,7 +802,7 @@ function flushInfoOnExit() {
   if (val === (infoValues.value[key] || '')) return
   const isUpdate = !!agendaInfoId.value
   const url = `${client.baseUrl}/api/collections/agenda_info/records${isUpdate ? '/' + agendaInfoId.value : ''}`
-  const payload = isUpdate ? { [key]: val } : { user: user.user.value.id, [key]: val }
+  const payload = isUpdate ? { [key]: val } : { user: user.user.value?.id, [key]: val }
   try {
     fetch(url, {
       method: isUpdate ? 'PATCH' : 'POST',
@@ -766,7 +824,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', flushInfoOnExit
 async function getAgendaInfo() {
   client.autoCancellation(false)
   try {
-    let rec = await client.collection('agenda_info').getFirstListItem(`user="${user.user.value.id}"`)
+    let rec = await client.collection('agenda_info').getFirstListItem(`user="${user.user.value?.id}"`)
     agendaInfoId.value = rec.id
     for (let k of ['nama', 'nis', 'iduka', 'alamat']) {
       if (rec[k]) infoSetter[k](rec[k])
@@ -777,7 +835,7 @@ async function getAgendaInfo() {
 // tampilan instansi: isi info header dari data siswa yang dipantau (pemetaan terakhir, read-only)
 async function isiInfoSiswaInstansi() {
   try {
-    let uid = await useSiswaDipantauAkunId()
+    let uid = await getDipantauId()
     if (!uid) return
     let akun = await client.collection('student_users').getOne(uid, { expand: 'siswa' })
     let s = akun?.expand?.siswa
@@ -800,7 +858,7 @@ async function isTodayPostJournal() {
   try {
     client.autoCancellation(false)
     let response = await client.collection('jurnal')
-      .getFirstListItem("siswa='" + user.user.value.id + "'", {
+      .getFirstListItem("siswa='" + (user.user.value?.id ?? "tidak-ada") + "'", {
         sort: "-created"
       })
     if (response) {
@@ -854,24 +912,50 @@ async function getJournals(loading = true) {
   // guru: semua jurnal; instansi: jurnal siswa dipantau; siswa: jurnal sendiri
   let base = ''
   if (isGuru || isInstansi) {
-    let sidInstansi = await useSiswaDipantauAkunId()
+    let sidInstansi = await getDipantauId()
     base = `siswa="${sidInstansi || "tidak-ada"}"`
   } else {
-    base = `siswa="${user.user.value.id}"`
+    // [FIX JURNAL KOSONG] user bisa saja belum siap saat navigasi SPA;
+    // jangan sampai TypeError karena null.id - tunggu watch identitas
+    const uid = user.user.value?.id
+    if (!uid) {
+      isLoadingJournals.value = false
+      return
+    }
+    base = `siswa="${uid}"`
   }
   let filter = base
   if(opsiFilterElemen.value == 'Lain-lain') {
     filter = base ? base + ` && elemen.elemen="Lain-lain"` : `elemen.elemen="Lain-lain"`
   }
   else if(opsiFilterElemen.value == 'sesuai') {
-    filter = base ? base + ` && elemen.elemen!="Lain-lain"` : `elemen.elemen!="Lain-lain"`
+    filter = base ? base + ` && elemen.elemen!="Lain-lain"` : `elemen.elemen="Lain-lain"`
   }
 
-  let res = await client.collection('jurnal').getList(1, perPage, {
-    filter: filter,
-    expand: "iduka, pembimbing, siswa.siswa, elemen",
-    sort: "-isDraft, isValid, -created"
-  })
+  let res = null
+  try {
+    res = await client.collection('jurnal').getList(1, perPage, {
+      filter: filter,
+      expand: "iduka, pembimbing, siswa.siswa, elemen",
+      sort: "-isDraft, isValid, -created",
+      requestKey: null
+    })
+  } catch (e) {
+    // [FIX JURNAL KOSONG] permintaan sempat gagal saat navigasi -> coba
+    // sekali lagi sebelum menyerah agar daftar tidak kosong palsu
+    await new Promise(r => setTimeout(r, 400))
+    try {
+      res = await client.collection('jurnal').getList(1, perPage, {
+        filter: filter,
+        expand: "iduka, pembimbing, siswa.siswa, elemen",
+        sort: "-isDraft, isValid, -created",
+        requestKey: null
+      })
+    } catch (e2) {
+      console.error('[jurnal] gagal memuat daftar jurnal:', e2)
+      res = null
+    }
+  }
   if (res) {
     isLoadingJournals.value = false
     journals.value = res
@@ -888,6 +972,8 @@ async function getJournals(loading = true) {
 
       if (!journals.value.items[i].isValid) notValidCount.value++
     }
+  } else {
+    isLoadingJournals.value = false
   }
 }
 
@@ -898,10 +984,10 @@ async function pagination(page, loading = true) {
   // guru: semua jurnal; instansi: jurnal siswa dipantau; siswa: jurnal sendiri
   let paginationFilter = ''
   if (isGuru || isInstansi) {
-    let sidInstansi = await useSiswaDipantauAkunId()
+    let sidInstansi = await getDipantauId()
     paginationFilter = `siswa='${sidInstansi || "tidak-ada"}'`
   } else {
-    paginationFilter = "siswa='" + user.user.value.id + "'"
+    paginationFilter = "siswa='" + (user.user.value?.id ?? "tidak-ada") + "'"
   }
   let res = await client.collection('jurnal').getList(page, perPage, {
     filter: paginationFilter,
@@ -953,7 +1039,7 @@ async function getElemenCp() {
 
   let res_user = null
   try {
-    res_user = await client.collection('student_users').getOne(user.user.value.id, {
+    res_user = await client.collection('student_users').getOne(user.user.value?.id, {
       expand: "siswa"
     })
   } catch (_e) {
@@ -1016,8 +1102,8 @@ function setModalEditJurnal(jurnal) {
 
 async function getCountDraftJournal() {
   let filterStr = (isGuru || isInstansi)
-    ? `siswa="${await useSiswaDipantauAkunId() || 'tidak-ada'}" && isDraft=true`
-    : `siswa="${user.user.value.id}" && isDraft=true`
+    ? `siswa="${await getDipantauId() || 'tidak-ada'}" && isDraft=true`
+    : `siswa="${user.user.value?.id ?? 'tidak-ada'}" && isDraft=true`
   try {
     // PAKAI getList + totalItems -> JANGAN ambil SEMUA data hanya untuk HITUNG PANJANG
     let res = await client.collection('jurnal').getList(1, 1, {
@@ -1057,8 +1143,8 @@ async function getKomentarByIdJurnal(journal) {
 
 onMounted(() => {
   getElemenCp()
-  getJournals()
-  getJurnalAgenda()
+  // getJournals & getJurnalAgenda dipicu oleh watch identitas user di atas
+  // (solusi jurnal kosong saat navigasi SPA); tidak dipanggil langsung di sini
   getAgendaInfo()
   getTtdInstansi()
   if (isInstansi || isGuru) isiInfoSiswaInstansi()

@@ -19,7 +19,8 @@ export async function useSiswaDipantauAkunId() {
       const pem = await client.collection('pemetaan').getList(1, 50, {
         filter: `iduka='${idukaId}'`,
         sort: '-created',
-        expand: 'siswa'
+        expand: 'siswa',
+        requestKey: null
       })
       const items = pem.items || []
       if (!items.length) return null
@@ -27,7 +28,7 @@ export async function useSiswaDipantauAkunId() {
       const siswaIds = items.map(p => p.expand?.siswa?.id).filter(Boolean)
       if (!siswaIds.length) return null
       const filterAkun = siswaIds.map(id => `siswa='${id}'`).join(' || ')
-      const akun = await client.collection('student_users').getList(1, 50, { filter: filterAkun })
+      const akun = await client.collection('student_users').getList(1, 50, { filter: filterAkun, requestKey: null })
       const bySiswaId = {}
       for (const a of (akun.items || [])) {
         if (a.siswa) bySiswaId[a.siswa] = a.id
@@ -59,7 +60,7 @@ export async function useSiswaDipantauAkunId() {
       // Fallback deteksi jurusan dari username/nama bila belum diset
       if (!guruPk.length) {
         const uname = (user.user.value?.username || user.user.value?.nama || '').toLowerCase()
-        const allPk = await client.collection('program_keahlian').getFullList()
+        const allPk = await client.collection('program_keahlian').getFullList({ requestKey: null })
         for (const pk of allPk) {
           const nm = (pk.nama || '').toLowerCase()
           if (nm && uname.includes(nm)) {
@@ -76,7 +77,8 @@ export async function useSiswaDipantauAkunId() {
 
       const accs = await client.collection('student_users').getFullList({
         filter: filterAkun || undefined,
-        sort: 'username'
+        sort: 'username',
+        requestKey: null
       })
 
       const valid = accs.map(a => a.id)
