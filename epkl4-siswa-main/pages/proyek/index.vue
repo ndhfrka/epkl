@@ -238,6 +238,11 @@ function liburPada(h) {
   const t = new Date(filterTahun.value, filterBulan.value - 1, h)
   // tanggal melebihi isi bulan (mis. 30/31 Februari) -> biarkan kosong
   if (t.getDate() !== h || t.getMonth() !== filterBulan.value - 1) return false
+  // [PERMINTAAN USER] L tidak ditampilkan terlebih dahulu: tunggu waktu
+  // benar-benar memasuki (atau melewati) hari tersebut. Hari libur/tanggal
+  // merah yang belum datang tetap tampil kosong, karena tiap bulan letak
+  // hari Minggu/tanggal merahnya berbeda.
+  if (t.getTime() > Date.now()) return false
   if (apakahTanggalMerah(t)) return true
   return !hariPklList.value.includes(NAMA_HARI_MINGGU[t.getDay()])
 }
