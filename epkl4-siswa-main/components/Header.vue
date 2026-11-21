@@ -2,7 +2,12 @@
   <div class="m3-login-header">
     <div class="m3-login-header__logo">
       <div class="m3-login-header__avatar">
-        <i class="bi bi-mortarboard-fill m3-login-header__avatar-icon"></i>
+        <!-- [GANTI LOGO] Logo resmi SMK AL-FATAH BANJARNEGARA menggantikan
+             ikon topi wisuda (bi-mortarboard-fill). File: /logo-smk-alfatah.png
+             (latar transparan) — dipasang di atas kapsul putih agar warna
+             sekolah selalu jelas di mode gelap maupun terang. -->
+        <img class="m3-login-header__logo-img" src="/logo-smk-alfatah.png"
+          alt="Logo SMK AL-FATAH BANJARNEGARA" />
       </div>
     </div>
     <div class="m3-login-header__brand">
@@ -46,12 +51,16 @@
   align-items: center;
   justify-content: center;
   border-radius: 24px;
-  background: var(--md-sys-color-secondary-container, #103253);
-  color: var(--md-sys-color-on-secondary-container, #d4e6ff);
+  /* [GANTI LOGO] kapsul putih agar logo sekolah (latar transparan,
+     warna kuning/hijau/biru) selalu kontras di tema gelap & terang */
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
-.m3-login-header__avatar-icon {
-  font-size: 38px;
-  line-height: 1;
+.m3-login-header__logo-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
 }
 
 .m3-login-header__brand {
@@ -88,7 +97,7 @@
   }
   .m3-login-header__logo { width: 116px; height: 116px; border-radius: 36px; }
   .m3-login-header__avatar { width: 76px; height: 76px; border-radius: 28px; }
-  .m3-login-header__avatar-icon { font-size: 42px; }
+  .m3-login-header__logo-img { width: 64px; height: 64px; }
   .m3-login-header__title { font-size: 36px; }
   .m3-login-header__role { font-size: 13px; }
 }
