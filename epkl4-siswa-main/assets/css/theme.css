@@ -1376,3 +1376,39 @@ html[data-tema='terang'] .recap-stat--secondary .recap-stat__value {
   color: #475569;
 }
 
+
+/* --- [REVISI TIM PKL] Kotak "Rekan Satu Tim PKL" (pages/index.vue):
+       di mode terang kartunya ikut terang seperti kartu lain, bukan
+       gelap sendiri; nama teman dibuat gelap agar tetap terbaca jelas --- */
+html[data-tema='terang'] .team-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 25px -12px rgba(15, 23, 42, 0.12);
+  backdrop-filter: none;
+}
+
+html[data-tema='terang'] .member-chip {
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+html[data-tema='terang'] .member-chip:hover {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+html[data-tema='terang'] .member-name {
+  color: #0f1729;
+}
+
+html[data-tema='terang'] .member-role {
+  color: #64748b;
+}
+
+html[data-tema='terang'] .team-card .text-white {
+  color: #0f1729 !important;
+}
+
+html[data-tema='terang'] .empty-team-state .text-muted {
+  color: #64748b !important;
+}
