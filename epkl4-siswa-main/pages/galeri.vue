@@ -531,15 +531,12 @@ onMounted(() => {
   border-radius: 999px;
 }
 
-/* Tema terang: badge purple & hijau perlu teks lebih gelap agar terbaca */
-:global(html[data-tema='terang']) .badge-admin {
-  color: #6d28d9 !important;
-  background: rgba(139, 92, 246, 0.14) !important;
-}
-:global(html[data-tema='terang']) .badge-siswa {
-  color: #047857 !important;
-  background: rgba(16, 185, 129, 0.14) !important;
-}
+/* Tema terang: badge purple & hijau perlu teks lebih gelap agar terbaca.
+   CATATAN: rule ini DIPINDAH ke assets/css/theme.css (blok tema terang).
+   Pola lama ':global(html[data-tema]) .badge' dimangkai compiler Vue
+   menjadi selector telanjang 'html {...}' yang melanda seluruh halaman
+   (bug teks tak terlihat, 23 Nov 2026). */
+/* (lihat theme.css: html[data-tema='terang'] .badge-admin / .badge-siswa) */
 
 /* ===== PENCARIAN & FILTER ===== */
 .search-addon {
