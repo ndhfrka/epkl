@@ -276,54 +276,37 @@ async function handleLogin() {
   letter-spacing: 0.2px;
   height: 100%;
 }
-/* --- MODE GELAP (bawaan): teks terang --- */
-:global(html:not([data-tema='terang'])) .m3-text-field__input {
-  color: #f1f5f9 !important;
-  -webkit-text-fill-color: #f1f5f9 !important;
-  caret-color: #f1f5f9 !important;
+/* --- TEKS INPUT: ikut tema lewat variabel theme.css (scoped murni).
+   PENTING: jangan pakai ':global(html...) .m3-text-field__input' — compiler
+   Vue memangkainya menjadi selector telanjang 'html {...}' (descendant
+   hilang) sehingga -webkit-text-fill-color + latar melanda SELURUH halaman
+   setelah login: semua teks di kertas putih agenda /jurnal jadi tak
+   terlihat (bug 23 Nov 2026). --- */
+.m3-text-field__input {
+  color: var(--md-sys-color-input-text, #f1f5f9) !important;
+  -webkit-text-fill-color: var(--md-sys-color-input-text, #f1f5f9) !important;
+  caret-color: var(--md-sys-color-input-text, #f1f5f9) !important;
 }
-/* --- MODE TERANG: teks gelap --- */
-:global(html[data-tema='terang']) .m3-text-field__input {
-  color: #0f1729 !important;
-  -webkit-text-fill-color: #0f1729 !important;
-  caret-color: #0f1729 !important;
-}
-/* Override isi-otomatis (autofill) bawaan browser Chrome/Safari/Edge.
-   MODE GELAP: blok autofill ikut gelap; MODE TERANG: blok ikut terang
-   supaya kotak isian tidak tampak hitam dan ketikan tetap terbaca. */
-:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill,
-:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill:hover,
-:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill:focus,
-:global(html:not([data-tema='terang'])) .m3-text-field__input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #09101e inset !important;
-  box-shadow: 0 0 0 1000px #09101e inset !important;
-  -webkit-text-fill-color: #f1f5f9 !important;
-  caret-color: #f1f5f9 !important;
-  color: #f1f5f9 !important;
+/* --- Override isi-otomatis (autofill) Chrome/Safari/Edge/Firefox:
+   latar & teks mengikuti tema via --md-sys-color-input-fill-bg
+   (#09101e gelap / #f3f6fa terang) supaya kotak isian tidak tampak
+   hitam dan ketikan tetap terbaca. --- */
+.m3-text-field__input:-webkit-autofill,
+.m3-text-field__input:-webkit-autofill:hover,
+.m3-text-field__input:-webkit-autofill:focus,
+.m3-text-field__input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--md-sys-color-input-fill-bg, #09101e) inset !important;
+  box-shadow: 0 0 0 1000px var(--md-sys-color-input-fill-bg, #09101e) inset !important;
+  -webkit-text-fill-color: var(--md-sys-color-input-text, #f1f5f9) !important;
+  caret-color: var(--md-sys-color-input-text, #f1f5f9) !important;
+  color: var(--md-sys-color-input-text, #f1f5f9) !important;
   transition: background-color 50000s ease-in-out 0s !important;
 }
-:global(html:not([data-tema='terang'])) .m3-text-field__input:autofill {
-  background-color: #09101e !important;
-  color: #f1f5f9 !important;
-  -webkit-text-fill-color: #f1f5f9 !important;
-  box-shadow: 0 0 0 1000px #09101e inset !important;
-}
-:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill,
-:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill:hover,
-:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill:focus,
-:global(html[data-tema='terang']) .m3-text-field__input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #f3f6fa inset !important;
-  box-shadow: 0 0 0 1000px #f3f6fa inset !important;
-  -webkit-text-fill-color: #0f1729 !important;
-  caret-color: #0f1729 !important;
-  color: #0f1729 !important;
-  transition: background-color 50000s ease-in-out 0s !important;
-}
-:global(html[data-tema='terang']) .m3-text-field__input:autofill {
-  background-color: #f3f6fa !important;
-  color: #0f1729 !important;
-  -webkit-text-fill-color: #0f1729 !important;
-  box-shadow: 0 0 0 1000px #f3f6fa inset !important;
+.m3-text-field__input:autofill {
+  background-color: var(--md-sys-color-input-fill-bg, #09101e) !important;
+  color: var(--md-sys-color-input-text, #f1f5f9) !important;
+  -webkit-text-fill-color: var(--md-sys-color-input-text, #f1f5f9) !important;
+  box-shadow: 0 0 0 1000px var(--md-sys-color-input-fill-bg, #09101e) inset !important;
 }
 .m3-text-field__input::placeholder {
   color: var(--md-sys-color-on-surface-variant, #c3c7d2);
