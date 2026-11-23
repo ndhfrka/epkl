@@ -804,10 +804,12 @@ onBeforeRouteLeave(() => {
 onMounted(() => window.addEventListener('beforeunload', flushInfoOnExit))
 // pemutus langganan realtime diisi saat onMounted, dipakai onBeforeUnmount
 let batalLanggananJurnal = null
+let sudahBongkarJurnal = false
 onBeforeUnmount(() => {
+  sudahBongkarJurnal = true
   window.removeEventListener('beforeunload', flushInfoOnExit)
   document.removeEventListener('visibilitychange', saatHalamanTerlihat)
-  if (batalLanggananJurnal) batalLanggananJurnal()
+  if (typeof batalLanggananJurnal === 'function') batalLanggananJurnal()
 })
 
 // [PERBAIKAN MOBILE] iPhone/PWA menangguhkan koneksi realtime (SSE) saat
@@ -1178,14 +1180,26 @@ onMounted(() => {
   getPesertaByIdUser()
   getCountDraftJournal()
   client.autoCancellation(false)
-  batalLanggananJurnal = client.collection('jurnal').subscribe('*', function (e) {
+  // [PENTING] subscribe() mengembalikan PROMISE yang memuat fungsi
+  // pembatalan, bukan fungsinya langsung. Sebelumnya promise ini disimpan
+  // lalu dipanggil saat halaman ditutup, memicu
+  // "TypeError: Se is not a function" setiap berpindah dari halaman jurnal.
+  // Tangani dengan benar: simpan fungsinya saat promise selesai; bila
+  // halaman sudah ditutup lebih dulu, batalkan seketika.
+  client.collection('jurnal').subscribe('*', function (e) {
     if (e.action == 'create' || e.action == 'update') {
       getJournals(false)
       getJurnalAgenda()
       isTodayPostJournal()
       getCountDraftJournal()
     }
-  }, {})
+  }, {}).then((batal) => {
+    if (sudahBongkarJurnal) {
+      try { batal() } catch (e) {}
+      return
+    }
+    batalLanggananJurnal = batal
+  }).catch(() => {})
   document.addEventListener('visibilitychange', saatHalamanTerlihat)
 })
 </script>
