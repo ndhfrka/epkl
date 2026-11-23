@@ -30,19 +30,36 @@ routerAdd('POST', '/api/epkl/login', (e) => {
   }
 
   // Coba cocokkan pada satu koleksi auth. Return record-nya bila cocok.
+  //
+  // Penting: pencarian pakai operator `~` (LIKE, case-insensitive di SQLite)
+  // supaya cara ketik username tidak membedakan huruf besar/kecil — sama
+  // seperti perilaku endpoint auth bawaan PocketBase (mis. "guru_pplg"
+  // tetap cocok dengan akun "Guru_PPLG").
+  // Setelah itu dicocokkan persis (tanpa membedakan huruf besar/kecil) di
+  // sisi JS agar wildcard `_`/`%` dari input tidak menimbulkan kecocokan
+  // palsu dengan akun lain.
   const coba = (namaKoleksi) => {
-    let rec = null
+    let kandidat = []
     try {
-      rec = $app.findFirstRecordByFilter(namaKoleksi, 'username = {:u}', {
-        u: identity,
-      })
+      kandidat = $app.findRecordsByFilter(
+        namaKoleksi,
+        'username ~ {:u}',
+        '-created',
+        50,
+        0,
+        { u: identity }
+      )
     } catch (err) {
-      return null // username tidak ada di koleksi ini
+      return null // tidak ada kandidat di koleksi ini
     }
-    if (!rec) return null
-    try {
-      if (rec.validatePassword(password)) return rec
-    } catch (err) {}
+    const target = identity.toLowerCase()
+    for (const rec of kandidat) {
+      const un = String(rec.getString('username') || '')
+      if (un.toLowerCase() !== target) continue
+      try {
+        if (rec.validatePassword(password)) return rec
+      } catch (err) {}
+    }
     return null
   }
 
