@@ -9,12 +9,23 @@ import PocketBase from 'pocketbase';
 export const urlDasarPocketBase = () => {
   const config = useRuntimeConfig()
   const host = (config.public.apiBaseUrl || "").trim()
-  const port = String(config.public.apiPort || "8090")
-  if (host) return host + ":" + port
-  if (import.meta.client) {
-    return window.location.protocol + "//" + window.location.hostname + ":" + port
+  const port = String(config.public.apiPort || "").trim()
+  // [DEPLOY A] PB_API_BASE_URL di-set: host eksplisit + port dari PB_API_PORT
+  if (host) return host + ":" + (port || "8090")
+  // [DEPLOY B] hanya PB_API_PORT di-set (tanpa host): same-origin — dipakai
+  // saat aplikasi jadi disajikan langsung dari PocketBase (pb_public) lewat
+  // tunnel/Worker, mis. build dengan PB_API_PORT=443
+  if (port) {
+    if (import.meta.client) {
+      return window.location.protocol + "//" + window.location.hostname + ":" + port
+    }
+    return "http://127.0.0.1:" + port
   }
-  return "http://127.0.0.1:" + port
+  // [LAN/DEV] keduanya kosong: PocketBase selalu di port bawaan 8090
+  if (import.meta.client) {
+    return window.location.protocol + "//" + window.location.hostname + ":8090"
+  }
+  return "http://127.0.0.1:8090"
 }
 
 export const usePocketBaseClient = () => {

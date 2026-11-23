@@ -122,7 +122,9 @@ Buka `http://localhost:3001` — dev server listen di `0.0.0.0` sehingga juga bi
 
 ## 🌐 Deploy Online Gratis (Netlify + ngrok)
 
-Cara agar aplikasi bisa dibuka dari mana saja (bukan hanya jaringan sekolah) **tanpa biaya**: frontend statis di-hosting **Netlify**, PocketBase tetap berjalan di PC, dijangkau publik lewat **domain statis ngrok**, dan dilindungi dari halaman peringatan ngrok oleh **jembatan Cloudflare Worker**.
+Cara agar aplikasi bisa dibuka dari mana saja (bukan hanya jaringan sekolah) **tanpa biaya**: PocketBase tetap berjalan di PC, dijangkau publik lewat **domain statis ngrok**, dilindungi dari halaman peringatan ngrok oleh **jembatan Cloudflare Worker**, dan **aplikasi jadi disajikan langsung dari PocketBase** (folder `pocketbase/pb_public`) sehingga cukup **satu URL** untuk semuanya.
+
+> **Status: SUDAH LIVE** — build statis sudah ditempatkan di `pb_public` dan aplikasi bisa dibuka di **https://epkl-api.nadhifbasmalah00.workers.dev** (aplikasi + API + realtime + foto dalam satu origin, tanpa CORS). Langkah B (Netlify) menjadi **opsional**.
 
 > Syarat: PC tempat PocketBase berjalan harus menyala saat aplikasi dipakai. Seluruh langkah di bawah ini **Rp0**.
 
@@ -153,7 +155,20 @@ Cloudflare Workers paket gratis (100.000 request/hari, tanpa kartu kredit) menja
 3. Ganti seluruh isi editor dengan kode dari [`cf-worker-proxy.js`](cf-worker-proxy.js) (sesuaikan `TARGET` bila domain ngrok Anda berbeda) → *Deploy*.
 4. URL Worker menjadi pintu API: `https://epkl-api.nadhifbasmalah00.workers.dev` — simpan alamat ini untuk langkah B. (Catatan: sertifikat `*.workers.dev` diproses beberapa menit setelah deploy pertama; bila sempat gagal TLS, tunggu lalu ulangi.)
 
-### B. Sisi Netlify — frontend statis
+### A++. Memperbarui aplikasi yang sudah live (mode satu-URL)
+
+Setelah mengubah kode aplikasi, bangun ulang versi statis lalu tempatkan ke folder yang disajikan PocketBase:
+
+```bash
+cd epkl4-siswa-main
+PB_API_PORT=443 npm run generate          # port 443 = jalur Worker
+rm -rf ../pocketbase/pb_public/*
+cp -r .output/public/. ../pocketbase/pb_public/
+```
+
+Tidak perlu env `PB_API_BASE_URL` — aplikasi memakai origin-nya sendiri. Untuk dipakai di LAN tanpa internet, `http://<ip-pc>:8090` kini juga menyajikan aplikasi jadi yang sama.
+
+### B. Sisi Netlify — frontend statis (opsional)
 
 1. Pastikan seluruh perubahan sudah **di-push ke GitHub** (Netlify membangun dari repo).
 2. Masuk [app.netlify.com](https://app.netlify.com) (bisa login pakai akun GitHub) → *Add new site* → *Import an existing project* → pilih repo.

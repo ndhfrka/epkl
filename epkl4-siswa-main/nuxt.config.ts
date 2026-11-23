@@ -382,10 +382,12 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      // default kosong: browser mengikuti hostname halaman (akses LAN), server
-      // memakai 127.0.0.1 — env PB_API_BASE_URL dipakai bila di-set (deploy)
+      // default kosong keduanya: browser mengikuti hostname halaman + port 8090
+      // (akses LAN). PB_API_BASE_URL (host eksplisit) dan PB_API_PORT (port)
+      // dipakai bila di-set — PB_API_PORT tanpa PB_API_BASE_URL berarti
+      // same-origin deploy (mis. build pb_public dengan PB_API_PORT=443)
       apiBaseUrl: process.env.PB_API_BASE_URL || "",
-      apiPort: process.env.PB_API_PORT || "8090",
+      apiPort: process.env.PB_API_PORT || "",
       appVersion: pkg.version,
       author: pkg.author,
     }
