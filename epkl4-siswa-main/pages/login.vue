@@ -113,8 +113,15 @@ async function handleLogin() {
       : 'Username dan password wajib diisi.'
     return
   }
+  // SATU request gabungan (hook PocketBase: pb_hooks/epkl_login.pb.js).
+  // Server mencoba student_users lalu teacher_users, sehingga login akun
+  // guru tidak lagi meninggalkan error 400 palsu di console browser.
   try {
-    await client.collection('student_users').authWithPassword(id, pass)
+    const res = await client.send('/api/epkl/login', {
+      method: 'POST',
+      body: { identity: id, password: pass },
+    })
+    client.authStore.save(res.token, res.record)
     sending.value = false
     navigateTo('/')
   } catch (e1) {
@@ -124,18 +131,40 @@ async function handleLogin() {
       pesan.value = 'Tidak dapat terhubung ke server. Pastikan internet aktif lalu coba lagi.'
       return
     }
-    try {
-      await client.collection('teacher_users').authWithPassword(id, pass)
-      sending.value = false
-      navigateTo('/')
-    } catch (e2) {
+    // 404 = endpoint hook tidak tersedia (mis. hosting tanpa pb_hooks).
+    // Fallback ke alur lama: student_users -> teacher_users.
+    if (e1?.status !== 404) {
       isError.value = true
-      pesan.value = gangguanJaringan(e2)
-        ? 'Tidak dapat terhubung ke server. Pastikan internet aktif lalu coba lagi.'
-        : 'Username atau password salah. Silakan coba lagi.'
+      pesan.value = 'Username atau password salah. Silakan coba lagi.'
       sending.value = false
       password.value = ''
       showPassword.value = false
+      return
+    }
+    try {
+      await client.collection('student_users').authWithPassword(id, pass)
+      sending.value = false
+      navigateTo('/')
+    } catch (e2) {
+      if (gangguanJaringan(e2)) {
+        sending.value = false
+        isError.value = true
+        pesan.value = 'Tidak dapat terhubung ke server. Pastikan internet aktif lalu coba lagi.'
+        return
+      }
+      try {
+        await client.collection('teacher_users').authWithPassword(id, pass)
+        sending.value = false
+        navigateTo('/')
+      } catch (e3) {
+        isError.value = true
+        pesan.value = gangguanJaringan(e3)
+          ? 'Tidak dapat terhubung ke server. Pastikan internet aktif lalu coba lagi.'
+          : 'Username atau password salah. Silakan coba lagi.'
+        sending.value = false
+        password.value = ''
+        showPassword.value = false
+      }
     }
   }
 }
