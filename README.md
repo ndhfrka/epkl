@@ -12,6 +12,8 @@
 
 | Fitur | Keterangan |
 |---|---|
+| **Filter Bulan & Tahun Bergaya Aplikasi** | Dropdown filter di halaman Jurnal & Absen diganti dari `<select>` native — kini tema-aware (terang/gelap), animasi halus, tanda centang opsi aktif; tidak lagi melempar frame popup mentah browser di tampilan mobile |
+| **Perbaikan Halaman Login** | Dropdown "akun tersimpan" Chrome yang menimpa kolom password di tampilan mobile ditiadakan (`autocomplete` disetel benar); alur login tidak berubah |
 | **Satu Jurnal per Hari** | Siswa hanya dapat meng-upload **satu jurnal per tanggal** — selama belum divalidasi guru, isian masih dapat diubah kembali melalui ikon pensil; setelah divalidasi terkunci |
 | **Geofence Jurnal** | Jurnal hanya bisa diisi saat siswa berada dalam radius **±100 meter** dari lokasi IDUKA — kecuali berstatus **Sakit/Izin** |
 | **Hari Libur Otomatis (L)** | Minggu & hari libur (daftar di `composables/hariLibur.js`) otomatis muncul sebagai baris bertanda **L** pada tabel absen |
@@ -128,7 +130,7 @@ Koleksi `nilai` dilindungi aturan akses: hanya **guru pembimbing** terkait atau 
 Riwayat lengkap ada di [`epkl4-siswa-main/CHANGELOG.md`](epkl4-siswa-main/CHANGELOG.md). Ringkasan:
 
 - **v3.0** (18 Agustus 2026) — major version, perbaikan semua fitur
-- **Pembaruan 21 November 2026** — satu jurnal per hari (bisa diedit selama belum divalidasi), geofence jurnal ±100 m, hari libur otomatis, urutan tabel per tanggal, perbaikan edit nilai guru & instansi, mode terang menyeluruh
+- **Pembaruan 21 November 2026** — satu jurnal per hari (bisa diedit selama belum divalidasi), geofence jurnal ±100 m, hari libur otomatis, urutan tabel per tanggal, perbaikan edit nilai guru & instansi, filter bulan & tahun bergaya aplikasi, perbaikan tampilan login, mode terang menyeluruh
 - **v2.10-rc** — pemisahan Guru Pembimbing dengan PIC Sekolah di IDUKA; jurnal & proyek wajib terpetakan
 - **v2.8** — fitur Self Project; navigasi elemen ke NavTop, proyek ke NavBottom
 - **v2.7** — konversi & kompresi foto jurnal otomatis; filter jurnal per Elemen
