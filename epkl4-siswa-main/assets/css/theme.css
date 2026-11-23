@@ -661,6 +661,53 @@ a.link:hover {
   color: var(--md-sys-color-on-surface) !important;
 }
 
+/* === Badge & info "subtle" Bootstrap ===
+   Latar subtle Bootstrap selalu terang-lembut (krem/hijau muda/dll), sedangkan
+   var warna --md-sys-color-warning/success/info/primary/error di tema GELAP
+   adalah warna TERANG (untuk latar gelap). Akibatnya teks badge menjadi
+   kuning/hijau muda di atas latar krem → nyaris tak terlihat (dilaporkan di
+   tabel agenda halaman Jurnal mode gelap).
+   Solusi: latar subtle dikunci ke warna subtle bawaan Bootstrap dan teks di
+   dalamnya dipaksa memakai varian GELAP dari warna status, sehingga selalu
+   kontras di tema terang maupun gelap (badge adalah pil mandiri, aman di
+   permukaan mana pun). */
+.bg-success-subtle {
+  background-color: #d1e7dd !important;
+}
+.bg-warning-subtle {
+  background-color: #fff3cd !important;
+}
+.bg-danger-subtle {
+  background-color: #f8d7da !important;
+}
+.bg-info-subtle {
+  background-color: #cff4fc !important;
+}
+.bg-primary-subtle {
+  background-color: #cfe2ff !important;
+}
+.bg-secondary-subtle {
+  background-color: #e2e3e5 !important;
+}
+.bg-success-subtle, .bg-success-subtle.text-success, .bg-success-subtle.text-success-emphasis {
+  color: #0f5132 !important;
+}
+.bg-warning-subtle, .bg-warning-subtle.text-warning, .bg-warning-subtle.text-warning-emphasis {
+  color: #664d03 !important;
+}
+.bg-danger-subtle, .bg-danger-subtle.text-danger, .bg-danger-subtle.text-danger-emphasis {
+  color: #58151c !important;
+}
+.bg-info-subtle, .bg-info-subtle.text-info, .bg-info-subtle.text-info-emphasis {
+  color: #055160 !important;
+}
+.bg-primary-subtle, .bg-primary-subtle.text-primary, .bg-primary-subtle.text-primary-emphasis {
+  color: #084298 !important;
+}
+.bg-secondary-subtle, .bg-secondary-subtle.text-secondary, .bg-secondary-subtle.text-secondary-emphasis {
+  color: #41464b !important;
+}
+
 .accordion-item {
   background-color: var(--md-sys-color-surface-container);
   border: 1px solid var(--md-sys-color-outline-variant);
@@ -1032,6 +1079,30 @@ html[data-tema='terang'] .modern-side-card {
   background: rgba(243, 246, 251, 0.94) !important;
   border-color: rgba(15, 23, 42, 0.1) !important;
   box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.14) !important;
+}
+
+/* Side-nav & bottom-nav: teks yang di Nav.vue/NavFixedBottom.vue ditulis
+   dengan warna tema gelap (putih/biru muda) namun tidak tersentuh aturan
+   REVISI KONTRAS di atas — di tema terang mereka tampil putih di atas
+   kartu terang sehingga tak terlihat (dilaporkan di halaman Jurnal).
+   Judul & peran di header brand sidebar, label/ikon AKTIF bottom-nav,
+   serta garis pembatas menu disesuaikan agar kontras di tema terang. */
+html[data-tema='terang'] .m3-login-header__title {
+  color: #0f1729 !important;
+}
+html[data-tema='terang'] .m3-login-header__role {
+  color: #1d4ed8 !important;
+}
+html[data-tema='terang'] .m3-navbar__link-inner--active .m3-navbar__label {
+  color: #1d4ed8 !important;
+  text-shadow: none !important;
+}
+html[data-tema='terang'] .m3-navbar__link-inner--active .m3-navbar__icon {
+  color: #1d4ed8 !important;
+  text-shadow: none !important;
+}
+html[data-tema='terang'] .nav-item--divider {
+  background: rgba(15, 23, 42, 0.12) !important;
 }
 
 /* Bottom navigation mobile (NavFixedBottom) */
