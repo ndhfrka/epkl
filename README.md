@@ -133,7 +133,7 @@ Riwayat lengkap ada di [`epkl4-siswa-main/CHANGELOG.md`](epkl4-siswa-main/CHANGE
 
 - **v3.0** (18 Agustus 2026) — major version, perbaikan semua fitur
 - **Pembaruan 21 November 2026** — satu jurnal per hari (bisa diedit selama belum divalidasi), geofence jurnal ±100 m, hari libur otomatis, urutan tabel per tanggal, perbaikan edit nilai guru & instansi, filter bulan & tahun bergaya aplikasi, perbaikan tampilan login, mode terang menyeluruh
-- **Pembaruan 23 November 2026** — tema terang halaman tambah jurnal; login siswa & guru dalam satu request via hook PocketBase (tanpa error 400 palsu di console saat login akun guru)
+- **Pembaruan 23 November 2026** — tema terang halaman tambah jurnal; login siswa & guru dalam satu request via hook PocketBase (tanpa error 400 palsu di console saat login akun guru); perbaikan kontras badge status di tabel agenda Jurnal mode gelap & teks menu samping/bawah yang tak terlihat di tema terang
 - **v2.10-rc** — pemisahan Guru Pembimbing dengan PIC Sekolah di IDUKA; jurnal & proyek wajib terpetakan
 - **v2.8** — fitur Self Project; navigasi elemen ke NavTop, proyek ke NavBottom
 - **v2.7** — konversi & kompresi foto jurnal otomatis; filter jurnal per Elemen
