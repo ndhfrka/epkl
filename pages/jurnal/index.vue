@@ -327,10 +327,11 @@ function parseAgendaDate(s) {
 
 async function getJurnalAgenda() {
   client.autoCancellation(false)
-  // [FIX JURNAL KOSONG SAAT NAVIGASI] dua percobaan: saat berpindah halaman,
-  // identitas user / siswa yang dipantau bisa saja belum siap atau gagal
-  // sesaat sehingga tabel agenda tampil kosong sampai di-refresh manual.
-  for (let percobaan = 1; percobaan <= 2; percobaan++) {
+  // [FIX JURNAL KOSONG SAAT NAVIGASI + PERKUAT MOBILE] tiga percobaan dengan
+  // jeda bertingkat: saat berpindah halaman / di jaringan HP, identitas user
+  // atau koneksi bisa gagal sesaat sehingga tabel agenda tampil kosong palsu
+  // sampai di-refresh manual. Juga: bila ketiganya gagal, data lama dipertahankan.
+  for (let percobaan = 1; percobaan <= 3; percobaan++) {
     try {
       // instansi: hanya agenda milik siswa yang dipantau (pemetaan terbaru) agar sama dengan data siswa
       let sidInstansi = (isInstansi || isGuru) ? await getDipantauId() : null
@@ -382,11 +383,12 @@ async function getJurnalAgenda() {
       })
       return
     } catch (e) {
-      if (percobaan === 2) {
-        jurnalAgenda.value = []
+      if (percobaan === 3) {
+        // jangan mengosongkan data yang sudah tampil hanya karena jaringan gagal
+        if (jurnalAgenda.value.length === 0) jurnalAgenda.value = []
         return
       }
-      await new Promise(r => setTimeout(r, 400))
+      await new Promise(r => setTimeout(r, percobaan === 1 ? 400 : 1500))
     }
   }
 }
@@ -800,7 +802,24 @@ onBeforeRouteLeave(() => {
 })
 
 onMounted(() => window.addEventListener('beforeunload', flushInfoOnExit))
-onBeforeUnmount(() => window.removeEventListener('beforeunload', flushInfoOnExit))
+// pemutus langganan realtime diisi saat onMounted, dipakai onBeforeUnmount
+let batalLanggananJurnal = null
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', flushInfoOnExit)
+  document.removeEventListener('visibilitychange', saatHalamanTerlihat)
+  if (batalLanggananJurnal) batalLanggananJurnal()
+})
+
+// [PERBAIKAN MOBILE] iPhone/PWA menangguhkan koneksi realtime (SSE) saat
+// aplikasi di latar belakang; event yang terjadi selama ditangguhkan tidak
+// diulang. Saat halaman terlihat lagi, segarkan daftar supaya tidak tampak
+// basi (jurnal yang diunggah saat latar belakang tetap langsung terlihat).
+function saatHalamanTerlihat() {
+  if (document.visibilityState === 'visible' && user.user.value?.id) {
+    getJournals(false)
+    getJurnalAgenda()
+  }
+}
 
 async function getAgendaInfo() {
   client.autoCancellation(false)
@@ -868,6 +887,12 @@ async function buatJurnalBaru(isDraft, isUpdate=false) {
   isPosting.value = true
   isSaved.value = false
   client.autoCancellation(false)
+  // [PERBAIKAN MOBILE] selalu pakai identitas user yang hidup saat tombol kirim
+  // ditekan - nilai form.siswa yang diambil saat halaman dibuka bisa kosong
+  // kalau sesi belum selesai dipulihkan (mis. PWA/iPhone dibuka langsung ke
+  // halaman ini), yang membuat jurnal tercipta tanpa pemilik dan tidak pernah
+  // muncul di daftar.
+  if (!isUpdate && user.user.value?.id) form.value.siswa = user.user.value.id
   let response;
   if(isUpdate) {
     formEdit.value.isDraft = isDraft
@@ -883,6 +908,15 @@ async function buatJurnalBaru(isDraft, isUpdate=false) {
     isSaved.value = true
     form.value.elemen = ""
     form.value.deskripsi = ""
+    // [PERBAIKAN MOBILE] segarkan daftar SEGERA setelah menyimpan - jangan
+    // bergantung pada realtime SSE yang di iPhone/PWA sering tertangguh atau
+    // mati, sehingga jurnal yang baru diunggah/diedit langsung terlihat.
+    getJournals(false)
+    getJurnalAgenda()
+    if (!isDraft) {
+      isTodayPostJournal()
+      getCountDraftJournal()
+    }
   }
 }
 
@@ -914,17 +948,10 @@ async function getJournals(loading = true) {
   }
 
   let res = null
-  try {
-    res = await client.collection('jurnal').getList(1, perPage, {
-      filter: filter,
-      expand: "iduka, pembimbing, siswa.siswa, elemen",
-      sort: "-isDraft, isValid, -created",
-      requestKey: null
-    })
-  } catch (e) {
-    // [FIX JURNAL KOSONG] permintaan sempat gagal saat navigasi -> coba
-    // sekali lagi sebelum menyerah agar daftar tidak kosong palsu
-    await new Promise(r => setTimeout(r, 400))
+  // [PERKUAT MOBILE] tiga percobaan dengan jeda bertingkat: di jaringan HP
+  // (lewat tunnel) kegagalan sesaat mudah terjadi, jangan langsung menyerah
+  // dan menampilkan daftar kosong palsu.
+  for (let percobaan = 1; percobaan <= 3 && !res; percobaan++) {
     try {
       res = await client.collection('jurnal').getList(1, perPage, {
         filter: filter,
@@ -932,9 +959,10 @@ async function getJournals(loading = true) {
         sort: "-isDraft, isValid, -created",
         requestKey: null
       })
-    } catch (e2) {
-      console.error('[jurnal] gagal memuat daftar jurnal:', e2)
+    } catch (e) {
       res = null
+      if (percobaan < 3) await new Promise(r => setTimeout(r, percobaan === 1 ? 400 : 1500))
+      else console.error('[jurnal] gagal memuat daftar jurnal:', e)
     }
   }
   if (res) {
@@ -1150,7 +1178,7 @@ onMounted(() => {
   getPesertaByIdUser()
   getCountDraftJournal()
   client.autoCancellation(false)
-  client.collection('jurnal').subscribe('*', function (e) {
+  batalLanggananJurnal = client.collection('jurnal').subscribe('*', function (e) {
     if (e.action == 'create' || e.action == 'update') {
       getJournals(false)
       getJurnalAgenda()
@@ -1158,6 +1186,7 @@ onMounted(() => {
       getCountDraftJournal()
     }
   }, {})
+  document.addEventListener('visibilitychange', saatHalamanTerlihat)
 })
 </script>
 
