@@ -109,6 +109,12 @@
   --md-sys-color-error-container: #93000a;
   --md-sys-color-on-error-container: #ffdad6;
 
+  /* Input login (dipakai pages/login.vue versi scoped; jangan pakai
+     ':global(html) .x' di <style scoped> — dimangkai compiler Vue jadi
+     rule telanjang 'html {...}' yang melanda seluruh halaman) */
+  --md-sys-color-input-text: #f1f5f9;
+  --md-sys-color-input-fill-bg: #09101e;
+
   /* Surface family */
   --md-sys-color-surface: #05080f;
   --md-sys-color-surface-dim: #03060c;
@@ -1030,6 +1036,9 @@ html[data-tema='terang'] {
   --md-sys-color-on-warning: #ffffff;
   --md-sys-color-info: #0369a1;
   --md-sys-color-on-info: #ffffff;
+  /* Input login versi terang (pasangan var blok gelap di atas) */
+  --md-sys-color-input-text: #0f1729;
+  --md-sys-color-input-fill-bg: #f3f6fa;
   --md-sys-color-surface: #e9edf3;
   --md-sys-color-surface-dim: #d3d9e3;
   --md-sys-color-surface-bright: #f7f9fc;
@@ -1103,6 +1112,19 @@ html[data-tema='terang'] .m3-navbar__link-inner--active .m3-navbar__icon {
 }
 html[data-tema='terang'] .nav-item--divider {
   background: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* [MIGRASI DARI pages/galeri.vue] Pola ':global(html[data-tema]) .badge'
+   dimangkai compiler Vue menjadi selector telanjang 'html {...}' yang
+   melanda seluruh halaman (bug teks tak terlihat, 23 Nov 2026), jadi
+   dipindah ke global CSS murni di sini. */
+html[data-tema='terang'] .badge-admin {
+  color: #6d28d9 !important;
+  background: rgba(139, 92, 246, 0.14) !important;
+}
+html[data-tema='terang'] .badge-siswa {
+  color: #047857 !important;
+  background: rgba(16, 185, 129, 0.14) !important;
 }
 
 /* Bottom navigation mobile (NavFixedBottom) */
@@ -1568,6 +1590,17 @@ html .agenda-paper .agenda-table td {
 html .agenda-paper .agenda-table thead th {
   background-color: #e5e7eb !important;
   border-color: #111827 !important;
+}
+
+/* [SAWAR TEKS KERTAS] -webkit-text-fill-color MENIMPA 'color' sekalipun
+   !important di Chromium, dan property ini DIWARISKAN. Kalau ada rule
+   global liar (mis. bekas ':global(html ...)' yang dimangkai compiler),
+   teks kertas putih bisa lenyap. Kunci ini memaksa setiap teks di dalam
+   kertas dilukis dengan warna 'color' miliknya sendiri — badge pun tetap
+   berwarna karena currentColor mengikuti color tiap elemen. */
+html .agenda-paper,
+html .agenda-paper * {
+  -webkit-text-fill-color: currentColor !important;
 }
 
 /* ====== [KUNCI KARTU ANTI-URUTAN] ======
