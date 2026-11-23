@@ -21,6 +21,8 @@ export default defineNuxtConfig({
     head: {
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=0' },
+        // [IPHONE / PWA] warna tema browser di iOS/Android
+        { name: 'theme-color', content: '#09101e' },
         // ========================================================================
         //  Origin-Agent-Cluster: true
         //  Membuat browser mengalokasikan PROSES / AGENT CLUSTER TERSEDIRI untuk
@@ -141,6 +143,10 @@ export default defineNuxtConfig({
       ],
 			link: [
         { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        // [IPHONE / PWA] ikon Home Screen iOS + manifest PWA — "Add to Home
+        // Screen" di iPhone/Android tampil seperti aplikasi sungguhan
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
+        { rel: 'manifest', href: '/manifest.webmanifest' },
         // ========================================================================
         //  PRECONNECT SEMUA GOOGLE Dihapus SEMUA.
         //
