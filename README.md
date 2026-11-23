@@ -12,6 +12,7 @@
 
 | Fitur | Keterangan |
 |---|---|
+| **Perbaikan Teks Tak Terlihat Setelah Login** | Akar masalah: pola `:global(html…)` di `<style scoped>` halaman login dimangkai compiler Vue menjadi rule global `html { … }` — `-webkit-text-fill-color` warna terang melanda seluruh halaman sehingga teks kertas putih agenda `/jurnal` lenyap setelah login. Rule input login kini scoped murni lewat variabel tema baru (`--md-sys-color-input-text` / `--md-sys-color-input-fill-bg`), badge galeri dipindah ke theme.css, dan kertas agenda diberi sawar `-webkit-text-fill-color: currentColor` |
 | **Login Siswa & Guru Satu Request** | Endpoint `POST /api/epkl/login` (hook PocketBase `pb_hooks/epkl_login.pb.js`) mengautentikasi `student_users` & `teacher_users` dalam satu panggilan — login akun guru tidak lagi meninggalkan error 400 palsu di console browser; frontend otomatis kembali ke alur lama bila hook tidak tersedia |
 | **Tema Terang Halaman Tambah Jurnal** | Textarea & area unggah foto di halaman "Tambah Jurnal" kini mengikuti tema terang/gelap — warna gelap hardcoded diganti variabel tema, konsisten di tampilan mobile maupun desktop |
 | **Filter Bulan & Tahun Bergaya Aplikasi** | Dropdown filter di halaman Jurnal & Absen diganti dari `<select>` native — kini tema-aware (terang/gelap), animasi halus, tanda centang opsi aktif; tidak lagi melempar frame popup mentah browser di tampilan mobile |
@@ -133,7 +134,7 @@ Riwayat lengkap ada di [`epkl4-siswa-main/CHANGELOG.md`](epkl4-siswa-main/CHANGE
 
 - **v3.0** (18 Agustus 2026) — major version, perbaikan semua fitur
 - **Pembaruan 21 November 2026** — satu jurnal per hari (bisa diedit selama belum divalidasi), geofence jurnal ±100 m, hari libur otomatis, urutan tabel per tanggal, perbaikan edit nilai guru & instansi, filter bulan & tahun bergaya aplikasi, perbaikan tampilan login, mode terang menyeluruh
-- **Pembaruan 23 November 2026** — tema terang halaman tambah jurnal; login siswa & guru dalam satu request via hook PocketBase (tanpa error 400 palsu di console saat login akun guru); perbaikan kontras badge status di tabel agenda Jurnal mode gelap & teks menu samping/bawah yang tak terlihat di tema terang
+- **Pembaruan 23 November 2026** — tema terang halaman tambah jurnal; login siswa & guru dalam satu request via hook PocketBase (tanpa error 400 palsu di console saat login akun guru); perbaikan kontras badge status di tabel agenda Jurnal mode gelap & teks menu samping/bawah yang tak terlihat di tema terang; **perbaikan akar bug teks tak terlihat setelah login** — rule `-webkit-text-fill-color` liar dari `:global(html…)` yang dimangkai compiler Vue menimpa warna teks seluruh halaman, kini input login scoped murni via variabel tema & kertas agenda diberi sawar teks
 - **v2.10-rc** — pemisahan Guru Pembimbing dengan PIC Sekolah di IDUKA; jurnal & proyek wajib terpetakan
 - **v2.8** — fitur Self Project; navigasi elemen ke NavTop, proyek ke NavBottom
 - **v2.7** — konversi & kompresi foto jurnal otomatis; filter jurnal per Elemen
