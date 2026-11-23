@@ -12,6 +12,8 @@
 
 | Fitur | Keterangan |
 |---|---|
+| **Siap Deploy Online Gratis (Netlify + ngrok + Cloudflare Worker)** | Aplikasi dapat dibuka dari mana saja tanpa biaya: frontend statis di-hosting Netlify, PocketBase tetap berjalan di PC sekolah dan dijangkau lewat **domain statis ngrok** (alamat tidak berubah walau tunnel direstart). Client PocketBase otomatis menyuntik header `ngrok-skip-browser-warning` bila host API adalah domain ngrok, dan jembatan `cf-worker-proxy.js` (Cloudflare Worker gratis, 100 ribu request/hari) menyuntik header yang sama di sisi server sehingga **realtime (`EventSource`) serta foto (`<img>`) lolos halaman peringatan akun gratis ngrok**. Skrip `jalankan-server.sh` menyalakan PocketBase + tunnel dalam satu perintah |
+| **Item Menu Aktif Drawer Lebih Jelas (Tema Terang)** | Di HP (menu ☰), item menu yang sedang aktif memakai warna `secondary-container` yang di tema terang pucat (#dae0f6) di atas latar drawer #dde3ed — nyaris tak berbeda sehingga sulit tahu sedang di halaman apa. Kini di tema terang item aktif memakai pil biru brand (#2563eb → #1d4ed8) dengan teks & ikon putih, sama tegas dengan sidebar desktop; mode gelap tetap memakai secondary-container #3b4758 |
 | **Perbaikan Teks Tak Terlihat Setelah Login** | Akar masalah: pola `:global(html…)` di `<style scoped>` halaman login dimangkai compiler Vue menjadi rule global `html { … }` — `-webkit-text-fill-color` warna terang melanda seluruh halaman sehingga teks kertas putih agenda `/jurnal` lenyap setelah login. Rule input login kini scoped murni lewat variabel tema baru (`--md-sys-color-input-text` / `--md-sys-color-input-fill-bg`), badge galeri dipindah ke theme.css, dan kertas agenda diberi sawar `-webkit-text-fill-color: currentColor` |
 | **Login Siswa & Guru Satu Request** | Endpoint `POST /api/epkl/login` (hook PocketBase `pb_hooks/epkl_login.pb.js`) mengautentikasi `student_users` & `teacher_users` dalam satu panggilan — login akun guru tidak lagi meninggalkan error 400 palsu di console browser; frontend otomatis kembali ke alur lama bila hook tidak tersedia |
 | **Tema Terang Halaman Tambah Jurnal** | Textarea & area unggah foto di halaman "Tambah Jurnal" kini mengikuti tema terang/gelap — warna gelap hardcoded diganti variabel tema, konsisten di tampilan mobile maupun desktop |
@@ -118,6 +120,53 @@ Buka `http://localhost:3001` — dev server listen di `0.0.0.0` sehingga juga bi
 | `PB_API_BASE_URL` | `http://127.0.0.1` | Alamat PocketBase |
 | `PB_API_PORT` | `8090` | Port PocketBase |
 
+## 🌐 Deploy Online Gratis (Netlify + ngrok)
+
+Cara agar aplikasi bisa dibuka dari mana saja (bukan hanya jaringan sekolah) **tanpa biaya**: frontend statis di-hosting **Netlify**, PocketBase tetap berjalan di PC, dijangkau publik lewat **domain statis ngrok**, dan dilindungi dari halaman peringatan ngrok oleh **jembatan Cloudflare Worker**.
+
+> Syarat: PC tempat PocketBase berjalan harus menyala saat aplikasi dipakai. Seluruh langkah di bawah ini **Rp0**.
+
+### A. Sisi PC — tunnel ngrok untuk PocketBase
+
+1. Daftar gratis di [dashboard.ngrok.com/signup](https://dashboard.ngrok.com/signup), lalu salin **authtoken** dari menu *Your Authtoken*.
+2. **Domain statis gratis dialokasikan otomatis** untuk endpoint pertama akun Anda — contoh nyata: `nervous-ferret-squander.ngrok-free.dev`. Alamatnya bisa dilihat di dashboard (menu *Endpoints*/*Domains*) atau di antarmuka lokal `http://127.0.0.1:4040` saat tunnel berjalan.
+3. Autentikasi ngrok (sekali saja, disimpan permanen di folder konfigurasi pengguna):
+   ```bash
+   ./ngrok/ngrok config add-authtoken <AUTHTOKEN_ANDA>
+   ```
+4. Jalankan PocketBase + tunnel sekaligus dari folder repo ini:
+   ```bash
+   bash jalankan-server.sh            # domain otomatis dari ngrok
+   bash jalankan-server.sh <domain>   # atau paksa domain tertentu
+   ```
+   Skrip ini menyalakan `pocketbase serve --http=0.0.0.0:8090` dan `ngrok http --traffic-policy-file=ngrok-policy.yml 8090`, lalu menampilkan URL publik aktif dan menguji `/api/health`.
+
+   > **Tentang `ngrok-policy.yml`** — akun gratis ngrok menyisipkan halaman peringatan *"You are about to visit …"* (ERR_NGROK_6024) untuk request yang User-Agent-nya terlihat seperti browser dan tidak membawa header `ngrok-skip-browser-warning`. Traffic policy **tidak cukup** menghilangkannya (pemeriksaan berjalan sebelum policy), tetapi dipertahankan sebagai lapisan tambahan. Yang benar-benar menolong: (1) `composables/pocketBaseClient.js` menyuntik header tersebut untuk semua panggilan `fetch` bila host API adalah domain ngrok; (2) **jembatan Cloudflare Worker** di bawah menangani sisa request yang tidak bisa membawa header dari browser (`<img>` foto/TTD dan `EventSource` realtime).
+5. Uji cepat manual (pakai User-Agent browser + header): `curl -A "Mozilla/5.0" -H "ngrok-skip-browser-warning: ePKL" https://<domain-ngrok>/api/health` harus membalas JSON, bukan halaman peringatan.
+
+### A+. Jembatan Cloudflare Worker (disarankan, Rp0)
+
+Cloudflare Workers paket gratis (100.000 request/hari, tanpa kartu kredit) menjadi perantara: browser → `*.workers.dev` → ngrok → PocketBase. Worker menyuntik header bypass ngrok di sisi server sehingga **foto (`<img>`) dan realtime (`EventSource`) ikut lolos halaman peringatan** — sesuatu yang mustahil dilakukan dari sisi browser.
+
+1. Daftar gratis di [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up) (bisa login pakai Google/GitHub).
+2. Dashboard → *Workers & Pages* → *Create* → pilih template *Hello World* → beri nama, mis. `epkl-api` → *Deploy* → *Edit code*.
+3. Ganti seluruh isi editor dengan kode dari [`cf-worker-proxy.js`](cf-worker-proxy.js) (sesuaikan `TARGET` bila domain ngrok Anda berbeda) → *Deploy*.
+4. URL Worker menjadi pintu API: `https://epkl-api.nadhifbasmalah00.workers.dev` — simpan alamat ini untuk langkah B. (Catatan: sertifikat `*.workers.dev` diproses beberapa menit setelah deploy pertama; bila sempat gagal TLS, tunggu lalu ulangi.)
+
+### B. Sisi Netlify — frontend statis
+
+1. Pastikan seluruh perubahan sudah **di-push ke GitHub** (Netlify membangun dari repo).
+2. Masuk [app.netlify.com](https://app.netlify.com) (bisa login pakai akun GitHub) → *Add new site* → *Import an existing project* → pilih repo.
+3. Isi konfigurasi build:
+   - **Base directory**: `epkl4-siswa-main`
+   - Build command & publish directory otomatis terbaca dari `epkl4-siswa-main/netlify.toml` (`npm run generate` → `.output/public`, lengkap dengan redirect SPA).
+4. Tambahkan **environment variables** sebelum build pertama (*Site configuration → Environment variables*, kemudian *Clear cache & deploy site*):
+   - `PB_API_BASE_URL` = `https://epkl-api.nadhifbasmalah00.workers.dev` ← URL jembatan Worker, **tanpa** `:port`
+   - `PB_API_PORT` = `443`
+5. Setelah build selesai, aplikasi live di `https://<nama-situs>.netlify.app` — daftar/diakses siswa & guru dari mana saja.
+
+> **Catatan**: di deploy statis, waktu server (`/api/server-time`) tidak tersedia sehingga aplikasi otomatis memakai waktu perangkat (label *"Waktu Lokal"*) — perilaku ini sudah tertangani di `composables/useServerTime.js`. Dasbor admin PocketBase ikut terekspos publik di `https://<domain>/_/` — gunakan kata sandi superuser yang kuat.
+
 ## 🗃️ Koleksi Database PocketBase
 
 Skema dikelola lewat migrasi di `pocketbase/pb_migrations/`, antara lain:
@@ -134,7 +183,7 @@ Riwayat lengkap ada di [`epkl4-siswa-main/CHANGELOG.md`](epkl4-siswa-main/CHANGE
 
 - **v3.0** (18 Agustus 2026) — major version, perbaikan semua fitur
 - **Pembaruan 21 November 2026** — satu jurnal per hari (bisa diedit selama belum divalidasi), geofence jurnal ±100 m, hari libur otomatis, urutan tabel per tanggal, perbaikan edit nilai guru & instansi, filter bulan & tahun bergaya aplikasi, perbaikan tampilan login, mode terang menyeluruh
-- **Pembaruan 23 November 2026** — tema terang halaman tambah jurnal; login siswa & guru dalam satu request via hook PocketBase (tanpa error 400 palsu di console saat login akun guru); perbaikan kontras badge status di tabel agenda Jurnal mode gelap & teks menu samping/bawah yang tak terlihat di tema terang; **perbaikan akar bug teks tak terlihat setelah login** — rule `-webkit-text-fill-color` liar dari `:global(html…)` yang dimangkai compiler Vue menimpa warna teks seluruh halaman, kini input login scoped murni via variabel tema & kertas agenda diberi sawar teks
+- **Pembaruan 23 November 2026** — tema terang halaman tambah jurnal; login siswa & guru dalam satu request via hook PocketBase (tanpa error 400 palsu di console saat login akun guru); perbaikan kontras badge status di tabel agenda Jurnal mode gelap & teks menu samping/bawah yang tak terlihat di tema terang; **perbaikan akar bug teks tak terlihat setelah login** — rule `-webkit-text-fill-color` liar dari `:global(html…)` yang dimangkai compiler Vue menimpa warna teks seluruh halaman, kini input login scoped murni via variabel tema & kertas agenda diberi sawar teks; **item menu aktif drawer (menu ☰ HP) tema terang kini pil biru brand dengan teks putih** agar jelas sedang berada di halaman apa; dukungan **deploy online gratis** (frontend Netlify + tunnel ngrok domain statis untuk PocketBase dengan `jalankan-server.sh` + `ngrok-policy.yml`, serta jembatan `cf-worker-proxy.js` Cloudflare Worker untuk melewati halaman peringatan ngrok pada foto & realtime)
 - **v2.10-rc** — pemisahan Guru Pembimbing dengan PIC Sekolah di IDUKA; jurnal & proyek wajib terpetakan
 - **v2.8** — fitur Self Project; navigasi elemen ke NavTop, proyek ke NavBottom
 - **v2.7** — konversi & kompresi foto jurnal otomatis; filter jurnal per Elemen

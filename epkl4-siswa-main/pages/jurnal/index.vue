@@ -217,7 +217,7 @@ definePageMeta({ middleware: 'auth' })
 useHead({ title: "Jurnal — e-PKL / SMK AL-FATAH BANJARNEGARA." })
 
 let config = useRuntimeConfig()
-let host = config.public.apiBaseUrl + ":" + config.public.apiPort
+let host = urlDasarPocketBase()
 let user = usePocketBaseUser()
 let client = usePocketBaseClient()
 let { tandaiAbsenOtomatis, hapusAbsenOtomatis } = useAbsenOtomatis()

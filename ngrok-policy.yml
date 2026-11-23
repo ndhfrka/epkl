@@ -1,0 +1,10 @@
+# Traffic policy ngrok untuk ePKL — disuntikkan di edge ngrok untuk SEMUA request
+# yang masuk ke tunnel (fetch API, EventSource realtime, <img>, dan navigasi halaman).
+# Tujuan: melewati halaman peringatan "You are about to visit …" milik akun gratis
+# ngrok dengan menambahkan header khusus yang diminta ngrok.
+on_http_request:
+  - actions:
+      - type: add-headers
+        config:
+          headers:
+            ngrok-skip-browser-warning: "ePKL"

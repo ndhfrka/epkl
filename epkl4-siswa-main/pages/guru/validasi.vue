@@ -415,7 +415,7 @@ useHead({ title: "Validasi Jurnal Guru — e-PKL / SMK AL-FATAH BANJARNEGARA" })
 const user = usePocketBaseUser()
 const client = usePocketBaseClient()
 const config = useRuntimeConfig()
-const host = config.public.apiBaseUrl + ":" + config.public.apiPort
+const host = urlDasarPocketBase()
 
 const role = computed(() => user.user.value?.role || '')
 const isGuru = computed(() => role.value === 'guru' || role.value === 'admin')

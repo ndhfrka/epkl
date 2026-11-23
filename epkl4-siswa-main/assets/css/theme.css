@@ -1127,6 +1127,23 @@ html[data-tema='terang'] .badge-siswa {
   background: rgba(16, 185, 129, 0.14) !important;
 }
 
+/* [REVISI DRAWER TERANG — 23 Nov 2026] Item menu AKTIF di Navigation Drawer
+   (menu ☰ di HP) memakai secondary-container yang di tema terang sangat
+   pucat (#dae0f6) di atas latar drawer #dde3ed — bedanya nyaris nol sehingga
+   user tidak bisa melihat sedang berada di halaman apa. Di terang, pakai pil
+   biru brand yang sama dengan sidebar desktop agar tegas & kontras tinggi.
+   (Mode gelap tetap pakai secondary-container #3b4758 yang sudah jelas.) */
+html[data-tema='terang'] .m3-drawer__item--active {
+  background-color: #1d4ed8 !important;
+  background-image: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.30) !important;
+}
+html[data-tema='terang'] .m3-drawer__item--active .m3-drawer__item-icon,
+html[data-tema='terang'] .m3-drawer__item--active .m3-drawer__item-label {
+  color: #ffffff !important;
+}
+
 /* Bottom navigation mobile (NavFixedBottom) */
 html[data-tema='terang'] .m3-navbar {
   background: rgba(243, 246, 251, 0.94) !important;

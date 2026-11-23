@@ -1,28 +1,49 @@
 import PocketBase from 'pocketbase';
 
-export const usePocketBaseClient = () => {
-  // composable harus dipanggil di dalam setup/plugin/middleware,
-  // jadi useRuntimeConfig dipanggil di sini (bukan di tingkat atas modul)
+// [HELPER URL DASAR] Alamat PocketBase (host:port) yang benar untuk SEMUA konteks:
+//  • Deploy online: env PB_API_BASE_URL dipetakan nuxt.config ke runtimeConfig.public
+//    — itulah satu-satunya jalur yang BENAR-BENAR sampai ke bundle browser
+//    (process.env tidak tersedia di client, pernah bikin login gagal di deploy).
+//  • Akses LAN: HP/laptop lain harus mengikuti hostname halaman (bukan 127.0.0.1,
+//    yang di perangkat lain berarti "diri sendiri" sehingga API tak terjangkau).
+export const urlDasarPocketBase = () => {
   const config = useRuntimeConfig()
-  const port = config.public.apiPort || "8090"
-
-  // [FIX AKSES LAN] Nilai default apiBaseUrl adalah http://127.0.0.1 — itu
-  // hanya benar bila browser berjalan DI MESIN SERVER. Di HP/laptop lain
-  // 127.0.0.1 berarti perangkat itu sendiri sehingga PocketBase tidak pernah
-  // terjangkau (login/data gagal). Di browser, host PocketBase mengikuti host
-  // aplikasi (sama satu mesin dengan PocketBase). Nilai PB_API_BASE_URL yang
-  // di-set lewat env tetap dihormati untuk deployment khusus.
-  let host = config.public.apiBaseUrl || ""
-  const kustom = (process.env.PB_API_BASE_URL || "").trim()
-  if (kustom) {
-    host = kustom
-  } else if (import.meta.client) {
-    host = window.location.protocol + "//" + window.location.hostname
+  const host = (config.public.apiBaseUrl || "").trim()
+  const port = String(config.public.apiPort || "8090")
+  if (host) return host + ":" + port
+  if (import.meta.client) {
+    return window.location.protocol + "//" + window.location.hostname + ":" + port
   }
+  return "http://127.0.0.1:" + port
+}
+
+export const usePocketBaseClient = () => {
+  const url = urlDasarPocketBase()
 
   // singleton: semua file memakai satu client supaya sesi login (authStore) tidak terpecah
   if (!globalThis.__epklPbClient) {
-    globalThis.__epklPbClient = new PocketBase(host + ":" + port)
+    globalThis.__epklPbClient = new PocketBase(url)
+
+    // [DEPLOY ONLINE — NGROK] Akun ngrok gratis menyisipkan halaman peringatan
+    // ("You are about to visit …") untuk setiap request dari browser yang tidak
+    // membawa header khusus `ngrok-skip-browser-warning`. Tanpa header ini,
+    // semua panggilan API dari frontend yang di-deploy (mis. Netlify) akan
+    // menerima halaman HTML peringatan alih-alih JSON sehingga login/data gagal.
+    // Header hanya dipasang bila host API memang domain ngrok — akses LAN
+    // (mis. http://192.168.x.x:8090) tidak berubah sama sekali. PocketBase aman:
+    // header tak dikenal diabaikan, dan preflight CORS-nya meng-echo header yang
+    // diminta browser. CATATAN: EventSource (realtime) dan <img> tidak bisa
+    // membawa header dari sisi browser — keduanya ditangani jembatan
+    // Cloudflare Worker (cf-worker-proxy.js, lihat README bagian Deploy Online).
+    if (/ngrok/i.test(url)) {
+      globalThis.__epklPbClient.beforeSend = (urlReq, opsi) => {
+        opsi.headers = Object.assign({}, opsi.headers, {
+          "ngrok-skip-browser-warning": "ePKL",
+        })
+        // format baru SDK 0.21+: { url, options } (format lama memicu warning)
+        return { url: urlReq, options: opsi }
+      }
+    }
   }
   return globalThis.__epklPbClient
 }

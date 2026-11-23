@@ -382,8 +382,9 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      // default ke PocketBase lokal agar app tetap jalan walau env var tidak diset
-      apiBaseUrl: process.env.PB_API_BASE_URL || "http://127.0.0.1",
+      // default kosong: browser mengikuti hostname halaman (akses LAN), server
+      // memakai 127.0.0.1 — env PB_API_BASE_URL dipakai bila di-set (deploy)
+      apiBaseUrl: process.env.PB_API_BASE_URL || "",
       apiPort: process.env.PB_API_PORT || "8090",
       appVersion: pkg.version,
       author: pkg.author,
