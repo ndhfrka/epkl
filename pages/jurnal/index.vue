@@ -183,7 +183,6 @@
                           <button class="btn btn-outline-secondary btn-sm" @click="cancelEdit()">Batal</button>
                         </div>
                       </template>
-                      <span v-else class="fill-hint" @click="startNew('baru-' + n)"><i class="bi bi-plus-lg"></i> tulis kegiatan</span>
                     </td>
                     <td class="col-status"></td>
                     <td class="col-ttd"></td>
@@ -440,12 +439,6 @@ function startEdit(j) {
   }
   editingId.value = j.id
   editingText.value = j.deskripsi
-}
-
-function startNew(key) {
-  if (isInstansi || isGuru) return
-  editingId.value = key
-  editingText.value = ''
 }
 
 function cancelEdit() {
@@ -1537,3 +1530,4 @@ onMounted(() => {
   cursor: not-allowed;
 }
 </style>
+

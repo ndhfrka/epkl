@@ -111,7 +111,6 @@
                         <button class="btn btn-outline-secondary btn-sm" @click="cancelEdit()">Batal</button>
                       </div>
                     </template>
-                    <span v-else class="fill-hint" @click="startNew('baru-' + n)"><i class="bi bi-plus-lg"></i> tulis kegiatan</span>
                   </td>
                   <td v-for="h in jumlahHari" :key="'kosong-' + n + '-' + h" class="col-hari cell-day" title="Klik untuk tandai hadir di tanggal ini" @click="startDayBaru(n, h)"></td>
                 </tr>
@@ -583,11 +582,6 @@ let isSavingCell = ref(false)
 function startEdit(a) {
   editingId.value = a.id
   editingText.value = a.uraian
-}
-
-function startNew(key) {
-  editingId.value = key
-  editingText.value = ''
 }
 
 function cancelEdit() {
@@ -1129,3 +1123,4 @@ async function getInfoSeed() {
   color: #374151;
 }
 </style>
+
