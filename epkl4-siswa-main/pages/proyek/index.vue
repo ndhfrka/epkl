@@ -85,12 +85,12 @@
                     </template>
                     <template v-else>
                       <span class="uraian-text" :class="{ 'info-empty': !row.absen.uraian }" :title="(isInstansi || isGuru) ? '' : 'Klik untuk mengubah'" @click="startEdit(row.absen)">{{ row.absen.uraian || ((isInstansi || isGuru) ? '—' : 'klik untuk isi') }}</span>
-                      <span v-if="!isInstansi && !isGuru" class="row-actions">
+                      <span v-if="!isInstansi && !isGuru && !punyaAlpa(row.absen)" class="row-actions">
                         <button class="btn-action" title="Hapus baris" @click="hapusAbsen(row.absen)"><i class="bi bi-trash-fill"></i></button>
                       </span>
                     </template>
                   </td>
-                  <td v-for="h in jumlahHari" :key="row.absen.id + '-' + h" class="col-hari cell-day" :class="row.absen.marks[h] ? 'mark-' + row.absen.marks[h] : ''" title="Klik: ✓ → S → I → A → kosong" @click="toggleDay(row.absen, h)">
+                  <td v-for="h in jumlahHari" :key="row.absen.id + '-' + h" class="col-hari cell-day" :class="row.absen.marks[h] ? 'mark-' + row.absen.marks[h] : ''" title="Klik: ✓ → S → I → kosong (tanda Alfa otomatis tidak bisa diubah)" @click="toggleDay(row.absen, h)">
                     <span v-if="row.absen.marks[h]">{{ markSymbol(row.absen.marks[h]) }}</span>
                   </td>
                 </tr>
@@ -234,9 +234,20 @@ async function getAbsen() {
 // ====== TANDA TANGGAL: ✓ hadir → S sakit → I izin → A alpa → kosong ======
 // [FITUR ALPA] tanda otomatis dari tandaiAlphaOtomatis() adalah 'x' dan
 // ditampilkan sebagai huruf 'A' di kolom absen.
-const MARK_CYCLE = ['v', 's', 'i', 'x']
+// [ATURAN ALFA] siklus manual siswa TIDAK menyertakan 'x' (Alfa) —
+// tanda Alfa hanya boleh dibuat oleh sistem otomatis (jam 18.00),
+// dan sel yang sudah 'x' dikunci (lihat toggleDay).
+const MARK_CYCLE = ['v', 's', 'i']
 function markSymbol(m) {
   return { v: '✓', s: 'S', i: 'I', x: 'A', l: 'L' }[m] || ''
+}
+
+// [ATURAN ALFA] cek apakah baris absen memuat tanda ALFA ('x').
+// Baris/tanda alfa (otomatis jam 18.00 maupun hasil siklus manual) TIDAK BOLEH
+// dihapus atau diubah oleh siswa supaya catatan alfa tetap tercatat permanen.
+function punyaAlpa(a) {
+  const marks = (a && a.marks && typeof a.marks === 'object' && !Array.isArray(a.marks)) ? a.marks : {}
+  return Object.values(marks).some(v => String(v) === 'x')
 }
 
 // ====== [FITUR LIBUR OTOMATIS] ======
@@ -307,16 +318,28 @@ const barisAgenda = computed(() => {
 // ====== GEOFENCING ======
 function ekstrakKoordinat(url) {
   if (!url) return ''
-  let m = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
-  if (!m) m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-  if (!m) {
-    try {
-      const u = new URL(url)
-      const q = u.searchParams.get('q') || u.searchParams.get('query')
-      if (q) m = q.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/)
-    } catch {}
-  }
-  return m ? `${m[1]},${m[2]}` : ''
+  const s = String(url);
+  // 1) PIN TEMPAT: pola !3dlat!4dlon - koordinat pin tempat usaha.
+  //    WAJIB dicek lebih dulu: tautan share Maps juga memuat koordinat
+  //    PUSAT PETA (@lat,lon) yang bisa 200-700 m dari pin tempat, sehingga
+  //    cek radius 100 m salah menolak padahal siswa berada di tempat PKL.
+  let m = s.match(/!3d(-?\d{1,3}\.\d{4,})!4d(-?\d{1,3}\.\d{4,})/);
+  // 2) pusat peta @lat,lon
+  if (!m) m = s.match(/@(-?\d{1,3}\.\d{4,}),(-?\d{1,3}\.\d{4,})/);
+  // 3) pasangan lat,lon lain di dalam URL (q=, ll=, dll.)
+  if (!m) m = s.match(/(-?\d{1,3}\.\d{4,})\s*,\s*(-?\d{1,3}\.\d{4,})/);
+  if (m) return `${m[1]},${m[2]}`;
+  // 4) parameter q=/query=/destination= yang koordinatnya kurang dari 4 desimal
+  try {
+    const u = new URL(url);
+    const q = u.searchParams.get('q') || u.searchParams.get('query') || u.searchParams.get('destination');
+    if (q) m = q.match(/^(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)$/);
+  } catch {}
+  return m ? `${m[1]},${m[2]}` : '';
+}
+
+function adalahTautanPendekMaps(url) {
+  return /maps\.app\.goo\.gl|goo\.gl\/maps/i.test(String(url || ''));
 }
 
 function hitungJarak(lat1, lon1, lat2, lon2) {
@@ -330,6 +353,79 @@ function hitungJarak(lat1, lon1, lat2, lon2) {
             Math.sin(dl/2) * Math.sin(dl/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
+}
+
+// ========================================================================
+//  [PEMANASAN GPS - PENTING UNTUK iPHONE]
+//  Safari/iPhone sering butuh 15-60 detik untuk mendapatkan posisi GPS
+//  pertama (apalagi di dalam ruangan), dan getCurrentPosition yang gagal
+//  karena timeout sering langsung gagal lagi saat dipanggil ulang.
+//  Solusinya: watchPosition dijalankan sejak halaman dibuka supaya posisi
+//  sudah siap saat absen diisi.
+// ========================================================================
+let posisiTerakhir = null;
+let idWatchGPS = null;
+let kodeGagalGPS = 0;
+
+function normPosisi(pos) {
+  return {
+    lat: pos.coords.latitude,
+    lon: pos.coords.longitude,
+    akurasi: pos.coords.accuracy || 0,
+    waktu: pos.timestamp || Date.now()
+  };
+}
+
+function mulaiPemanasanGPS() {
+  if (!navigator.geolocation || idWatchGPS !== null) return;
+  try {
+    idWatchGPS = navigator.geolocation.watchPosition(
+      (pos) => {
+        kodeGagalGPS = 0;
+        posisiTerakhir = normPosisi(pos);
+      },
+      (err) => { kodeGagalGPS = (err && err.code) || 0; },
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 20000 }
+    );
+  } catch (e) {
+    idWatchGPS = null;
+  }
+}
+
+function hentikanPemanasanGPS() {
+  if (idWatchGPS !== null && navigator.geolocation) {
+    try { navigator.geolocation.clearWatch(idWatchGPS); } catch (e) {}
+  }
+  idWatchGPS = null;
+}
+
+// Tunggu satu update terbaru dari watch GPS (maks msTunggu milidetik).
+// Jika izin lokasi diketahui ditolak, langsung selesai supaya tidak menunggu.
+function tungguPosisiWatch(msTunggu) {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation || kodeGagalGPS === 1) { resolve(null); return; }
+    let selesai = false;
+    let id = null;
+    const timer = setTimeout(() => tutup(null), msTunggu);
+    function tutup(hasil) {
+      if (selesai) return;
+      selesai = true;
+      clearTimeout(timer);
+      if (id !== null) { try { navigator.geolocation.clearWatch(id); } catch (e) {} }
+      resolve(hasil);
+    }
+    try {
+      id = navigator.geolocation.watchPosition(
+        (pos) => tutup(normPosisi(pos)),
+        (err) => { if (err && err.code === 1) tutup(null); },
+        { enableHighAccuracy: true, timeout: msTunggu, maximumAge: 15000 }
+      );
+    } catch (e) { tutup(null); }
+  });
+}
+
+function ambilPosisiSekali(opsi) {
+  return new Promise((res2, rej2) => navigator.geolocation.getCurrentPosition(res2, rej2, opsi));
 }
 
 async function cekGeofencing() {
@@ -357,7 +453,10 @@ async function cekGeofencing() {
         if (k) { koordinatPKL = k; break }
       }
       if (!koordinatPKL) {
-        alert('Lokasi PKL Anda tidak memiliki koordinat valid. Perbarui link Google Maps di menu Lokasi PKL (pastikan formatnya mengandung koordinat).');
+        const adaPendek = (res.items || []).some((rec) => adalahTautanPendekMaps(rec.link_maps));
+        alert(adaPendek
+          ? 'Link Google Maps Anda berupa tautan pendek (maps.app.goo.gl) yang tidak memuat koordinat. Buka tautan itu di browser, tunggu peta terbuka, salin URL lengkapnya (berisi angka seperti @-6.1234,107.5678 atau !3d..!4d..), lalu tempel kembali di menu Lokasi PKL.'
+          : 'Lokasi PKL Anda tidak memiliki koordinat valid. Perbarui link Google Maps di menu Lokasi PKL (buka tempat Anda di Google Maps, ketuk Bagikan lalu Salin tautan yang mengandung koordinat).');
         setStatus('err', 'Koordinat PKL tidak valid.');
         resolve(false);
         return;
@@ -373,38 +472,45 @@ async function cekGeofencing() {
         return;
       }
 
-      // Ambil posisi GPS; jika gagal dengan akurasi tinggi, coba sekali lagi
-      // dengan mode akurasi rendah (Wi-Fi/jaringan — lebih cepat & kompatibel).
-      function ambilPosisi(opsi) {
-        return new Promise((res2, rej2) => navigator.geolocation.getCurrentPosition(res2, rej2, opsi))
+      // Ambil posisi GPS secara bertahap (tahan gagal, ramah iPhone):
+      // 1) posisi dari pemanasan GPS bila masih segar (<= 2 menit),
+      // 2) tunggu update langsung dari watch GPS aktif (maks 15 dtk),
+      // 3) getCurrentPosition mode hemat (Wi-Fi/jaringan - cepat di dalam ruangan),
+      // 4) getCurrentPosition mode akurasi tinggi sebagai percobaan terakhir.
+      let position = null;
+      if (posisiTerakhir && (Date.now() - posisiTerakhir.waktu) <= 120000) {
+        position = posisiTerakhir;
       }
-
-      let position = null
-      try {
-        position = await ambilPosisi({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })
-      } catch (err1) {
+      if (!position) position = await tungguPosisiWatch(15000);
+      if (!position) {
         try {
-          position = await ambilPosisi({ enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 })
-        } catch (err2) {
-          const kode = (err2 && err2.code) || (err1 && err1.code)
-          let pesan = 'Gagal mendapatkan lokasi Anda. Pastikan Anda mengizinkan akses lokasi (GPS) pada browser/perangkat Anda.'
-          if (kode === 1) pesan = 'Akses lokasi DITOLAK. Izinkan akses lokasi untuk situs ini pada browser Anda (ketuk ikon gembok di address bar).'
-          else if (kode === 2) pesan = 'Lokasi tidak dapat ditentukan. Coba keluar ruangan / nyalakan GPS lalu coba lagi.'
-          else if (kode === 3) pesan = 'Waktu tunggu GPS habis. Coba lagi di tempat dengan sinyal lebih baik.'
-          alert(pesan)
-          setStatus('err', 'Gagal akses GPS.');
-          resolve(false)
-          return
+          position = normPosisi(await ambilPosisiSekali({ enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 }));
+        } catch (err1) {
+          try {
+            position = normPosisi(await ambilPosisiSekali({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }));
+          } catch (err2) {
+            const kode = (err2 && err2.code) || (err1 && err1.code) || kodeGagalGPS;
+            let pesan = 'Gagal mendapatkan lokasi Anda. Pastikan Anda mengizinkan akses lokasi (GPS) pada browser/perangkat Anda.';
+            if (kode === 1) pesan = 'Akses lokasi DITOLAK. Pada iPhone: Pengaturan → Safari → Lokasi → "Tanyakan/Berizinkan", lalu buka ulang situs ini dan ketuk Izinkan saat diminta. Pada Android/Chrome: ketuk ikon gembok di address bar → izinkan lokasi.';
+            else if (kode === 2) pesan = 'Lokasi tidak dapat ditentukan. Nyalakan Layanan Lokasi (iPhone: Pengaturan → Privasi & Keamanan → Layanan Lokasi), nyalakan Wi-Fi, lalu coba lagi dekat jendela / luar ruangan.';
+            else if (kode === 3) pesan = 'Waktu tunggu GPS habis. Di dalam ruangan GPS bisa butuh 1-2 menit: berdiri dekat jendela, nyalakan Wi-Fi, tunggu lalu coba lagi. Jika sering gagal, buka halaman ini lebih awal supaya GPS sempat mencari posisi sebelum Anda mengisi absen.';
+            alert(pesan);
+            setStatus('err', 'Gagal akses GPS.');
+            resolve(false);
+            return;
+          }
         }
       }
 
-      const latUser = position.coords.latitude;
-      const lonUser = position.coords.longitude;
-      const akurasi = Math.round(position.coords.accuracy || 0);
+      const latUser = position.lat;
+      const lonUser = position.lon;
+      const akurasi = Math.round(position.akurasi || 0);
       const jarak = hitungJarak(latUser, lonUser, latPKL, lonPKL);
 
       if (jarak > 100) {
-        alert(`Anda berada di luar jangkauan lokasi PKL (Jarak: ${Math.round(jarak)} meter). Anda harus berada dalam radius 100 meter untuk absen hadir.`);
+        let tambahan = '';
+        if (akurasi > 150) tambahan = ` Catatan: akurasi GPS Anda saat ini ±${akurasi} meter - coba di dekat jendela / luar ruangan lalu coba lagi.`;
+        alert(`Anda berada di luar jangkauan lokasi PKL (Jarak: ${Math.round(jarak)} meter dari pin lokasi PKL). Anda harus berada dalam radius 100 meter untuk absen hadir.${tambahan}`);
         setStatus('err', `Jarak terlalu jauh: ${Math.round(jarak)}m`);
         resolve(false);
       } else {
@@ -421,6 +527,13 @@ async function cekGeofencing() {
 
 async function toggleDay(a, h) {
   if (isInstansi || isGuru) return
+  // [ATURAN ALFA] tanda ALFA tidak boleh diubah/dihapus siswa —
+  // satu klik pada sel 'x' akan melingkar ke kosong dan menghapus catatan alfa.
+  if (String((a.marks || {})[h] ?? '') === 'x') {
+    setStatus('err', 'Tanda Alfa tidak bisa diubah atau dihapus — hubungi guru bila ada kekeliruan.')
+    alert('Tanda Alfa tidak bisa diubah atau dihapus — hubungi guru bila ada kekeliruan.')
+    return
+  }
   const marks = { ...a.marks }
   const idx = MARK_CYCLE.indexOf(marks[h])
   
@@ -564,6 +677,13 @@ async function saveEdit() {
 
 async function hapusAbsen(a) {
   if (isInstansi || isGuru) return
+  // [ATURAN ALFA] baris yang mengandung tanda ALFA tidak boleh dihapus siswa
+  // supaya catatan alfa otomatis tetap tercatat permanen.
+  if (punyaAlpa(a)) {
+    setStatus('err', 'Baris dengan tanda Alfa tidak bisa dihapus.')
+    alert('Baris dengan tanda Alfa tidak bisa dihapus.')
+    return
+  }
   if (!confirm('Hapus baris absen ini?')) return
   client.autoCancellation(false)
   try {
@@ -689,7 +809,12 @@ onMounted(() => {
   getAbsen()
   getAgendaInfo()
   getInfoSeed()
+  mulaiPemanasanGPS()
   isLoading.value = false
+})
+
+onBeforeUnmount(() => {
+  hentikanPemanasanGPS()
 })
 
 async function getAgendaInfo() {
