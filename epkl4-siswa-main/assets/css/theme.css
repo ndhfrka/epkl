@@ -1643,3 +1643,29 @@ html[data-tema='terang'] .card .card-body,
 html[data-tema='terang'] .card .card-footer {
   color: #0f1729 !important;
 }
+
+/* ============================================================
+   SEMBUNYIKAN HUD "Powered by Netlify"
+   Lencana/panel ini BUKAN bagian aplikasi — Netlify menyuntikkannya
+   lewat script edge (/.netlify/scripts/hud) khusus situs yang dibuat
+   lewat AI agent, dan menutupi tombol aplikasi di layar sempit HP.
+   Semua elemennya memakai awalan id "nl-" (nl-hud-frame, nl-badge,
+   nl-mini, nl-card, dst.) dengan gaya inline biasa, jadi aturan
+   !important di sini selalu menang. Aplikasi tidak pernah memakai
+   nama "nl-*", jadi aman.
+   ============================================================ */
+#nl-hud-frame,
+#nl-badge-frame,
+#nl-badge,
+#nl-mini,
+#nl-card,
+#nl-pop,
+#nl-tools,
+#nl-tip,
+#nl-status,
+[netlify-hud] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
