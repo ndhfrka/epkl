@@ -1,0 +1,10 @@
+# Proxy API ke tunnel ngrok di PC — dilakukan SERVER-SIDE oleh Netlify
+# (bukan oleh browser), jadi interstitial ngrok tidak pernah tersentuh browser
+# dan tidak ada CORS sama sekali. Satu URL untuk semua:
+#   UI  : https://epkl-orzu.netlify.app
+#   API : https://epkl-orzu.netlify.app/api/*  ->  ngrok -> PocketBase :8090
+/api/*  https://nervous-ferret-squander.ngrok-free.dev/api/:splat  200!
+
+# SPA fallback: semua route yang tidak punya file HTML dilayani index.html
+# (aplikasi memakai mode SPA ssr:false — navigasi ditangani Vue Router)
+/*    /index.html   200
