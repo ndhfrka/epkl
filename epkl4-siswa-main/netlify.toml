@@ -1,31 +1,34 @@
-# ============================================================
 # Konfigurasi deploy Netlify untuk e-PKL (frontend Nuxt 3 SPA)
 #
-# CARA PAKAI di dashboard Netlify:
-#   1. Add new site -> Import an existing project -> GitHub -> pilih repo
-#   2. Base directory        : epkl4-siswa-main
-#      Build command         : npm run generate   (sudah diatur di bawah)
-#      Publish directory     : .output/public     (sudah diatur di bawah)
-#   3. Alamat API PocketBase sudah ditulis di [build.environment] di bawah.
-#      URL ini DI-BAK saat build, jadi kalau alamat PocketBase berubah,
-#      ubah nilai di bawah lalu jalankan ulang deploy.
+# ARSITEKTUR SATU-URL (tanpa Cloudflare Worker, tanpa CORS):
+#   UI  : https://epkl-orzu.netlify.app            (file statis hasil build)
+#   API : https://epkl-orzu.netlify.app/api/*      (proxy server-side)
+#         -> diteruskan ke tunnel ngrok -> PocketBase :8090 di PC
+#
+# Build TIDAK butuh env var apa pun: build produksi memakai URL RELATIF
+# (same-origin) — lihat composables/pocketBaseClient.js
+# (urlDasarPocketBase, cabang [PRODUKSI SAME-ORIGIN]). Proxy /api/* di
+# bawahlah yang menghubungkan same-origin itu ke PocketBase di PC.
 #
 # CATATAN: Netlify hanya menjalankan FRONTEND (statis). PocketBase
-# (backend) tidak bisa berjalan di Netlify — jalankan di PC dengan
-# tunnel HTTPS (mis. cloudflared/ngrok) atau di VPS/hosting Node.
+# (backend) tidak bisa berjalan di Netlify — tetap jalankan di PC dengan
+# tunnel ngrok (lihat README bagian Deploy Online).
 # ============================================================
 
 [build]
   command = "npm run generate"
   publish = ".output/public"
 
-# Variabel build: alamat API PocketBase yang akan DI-BAK ke frontend statis.
-# (Ditulis di sini karena setting env var lewat API dashboard Netlify
-#  berbayar di akun gratis — lewat netlify.toml efeknya sama.)
-# Kalau alamat PocketBase berubah, ubah baris di bawah lalu deploy ulang.
-[build.environment]
-  PB_API_BASE_URL = "https://epkl-api.nadhifbasmalah00.workers.dev"
-  PB_API_PORT = "443"
+# [PROXY API] /api/* diteruskan SERVER-SIDE ke tunnel ngrok di PC.
+# Karena dilakukan server Netlify (bukan browser), interstitial ngrok
+# tidak pernah tersentuh browser — fetch, <img>, dan EventSource
+# (realtime SSE) semuanya aman lewat satu origin yang sama.
+# URUTAN PENTING: aturan ini harus SEBELUM fallback SPA /* di bawah.
+[[redirects]]
+  from = "/api/*"
+  to = "https://nervous-ferret-squander.ngrok-free.dev/api/:splat"
+  status = 200
+  force = true
 
 # SPA fallback: semua route yang tidak punya file HTML dilayani 200.html
 # (aplikasi memakai mode SPA ssr:false — navigasi ditangani Vue Router)
