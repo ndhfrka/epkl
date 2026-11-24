@@ -21,8 +21,15 @@ export const urlDasarPocketBase = () => {
     }
     return "http://127.0.0.1:" + port
   }
-  // [LAN/DEV] keduanya kosong: PocketBase selalu di port bawaan 8090
+  // [PRODUKSI SAME-ORIGIN] keduanya kosong + build produksi (nuxt generate):
+  // pakai URL relatif "" sehingga API diambil dari asal yang sama dengan UI.
+  // Satu build ini melayani dua tempat sekaligus:
+  //  • pb_public di PC — PocketBase sendiri menyajikan UI di :8090 (LAN)
+  //  • Netlify — /api/* diteruskan server-side ke tunnel ngrok lewat aturan
+  //    proxy di public/_redirects (dan netlify.toml untuk build git)
   if (import.meta.client) {
+    if (!import.meta.dev) return ""
+    // [DEV] nuxt dev (:3000) sementara PocketBase tetap di :8090
     return window.location.protocol + "//" + window.location.hostname + ":8090"
   }
   return "http://127.0.0.1:8090"
@@ -43,17 +50,25 @@ export const usePocketBaseClient = () => {
     // Header hanya dipasang bila host API memang domain ngrok — akses LAN
     // (mis. http://192.168.x.x:8090) tidak berubah sama sekali. PocketBase aman:
     // header tak dikenal diabaikan, dan preflight CORS-nya meng-echo header yang
-    // diminta browser. CATATAN: EventSource (realtime) dan <img> tidak bisa
-    // membawa header dari sisi browser — keduanya ditangani jembatan
-    // Cloudflare Worker (cf-worker-proxy.js, lihat README bagian Deploy Online).
-    if (/ngrok/i.test(url)) {
-      globalThis.__epklPbClient.beforeSend = (urlReq, opsi) => {
+    // diminta browser. EventSource (realtime) dan <img> tidak bisa membawa
+    // header dari sisi browser — pada deploy Netlify keduanya tetap aman karena
+    // /api/* diteruskan SERVER-SIDE oleh proxy Netlify (public/_redirects), bukan
+    // oleh browser, jadi interstitial ngrok tak pernah tersentuh browser.
+    // [ANTI-CACHE iPHONE] Safari/iOS menyimpan respons GET API yang tidak
+    // membawa header Cache-Control, lalu menyajikannya kembali saat daftar
+    // diambil ulang dengan URL yang sama - akibatnya jurnal/absen yang baru
+    // diunggah "tidak muncul" di daftar sampai aplikasi di-refresh penuh.
+    // Semua data PocketBase bersifat dinamis, jadi setiap permintaan API
+    // dipaksa melewati cache HTTP (fetch cache: 'no-store').
+    globalThis.__epklPbClient.beforeSend = (urlReq, opsi) => {
+      opsi.cache = "no-store"
+      if (/ngrok/i.test(urlReq)) {
         opsi.headers = Object.assign({}, opsi.headers, {
           "ngrok-skip-browser-warning": "ePKL",
         })
-        // format baru SDK 0.21+: { url, options } (format lama memicu warning)
-        return { url: urlReq, options: opsi }
       }
+      // format baru SDK 0.21+: { url, options } (format lama memicu warning)
+      return { url: urlReq, options: opsi }
     }
   }
   return globalThis.__epklPbClient
