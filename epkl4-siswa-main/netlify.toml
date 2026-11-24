@@ -2,13 +2,13 @@
 #
 # ARSITEKTUR SATU-URL (tanpa Cloudflare Worker, tanpa CORS):
 #   UI  : https://epkl-orzu.netlify.app            (file statis hasil build)
-#   API : https://epkl-orzu.netlify.app/api/*      (proxy server-side)
-#         -> diteruskan ke tunnel ngrok -> PocketBase :8090 di PC
+#   API : https://epkl-orzu.netlify.app/api/*      (Netlify Function proxy)
+#         -> epkl-api (Deno) menyuntik header ngrok-skip-browser-warning
+#            secara SERVER-SIDE lalu meneruskan ke tunnel ngrok -> PocketBase
 #
 # Build TIDAK butuh env var apa pun: build produksi memakai URL RELATIF
 # (same-origin) — lihat composables/pocketBaseClient.js
-# (urlDasarPocketBase, cabang [PRODUKSI SAME-ORIGIN]). Proxy /api/* di
-# bawahlah yang menghubungkan same-origin itu ke PocketBase di PC.
+# (urlDasarPocketBase, cabang [PRODUKSI SAME-ORIGIN]).
 #
 # CATATAN: Netlify hanya menjalankan FRONTEND (statis). PocketBase
 # (backend) tidak bisa berjalan di Netlify — tetap jalankan di PC dengan
@@ -18,15 +18,16 @@
 [build]
   command = "npm run generate"
   publish = ".output/public"
+  functions = "netlify/functions"
 
-# [PROXY API] /api/* diteruskan SERVER-SIDE ke tunnel ngrok di PC.
-# Karena dilakukan server Netlify (bukan browser), interstitial ngrok
-# tidak pernah tersentuh browser — fetch, <img>, dan EventSource
-# (realtime SSE) semuanya aman lewat satu origin yang sama.
+# [PROXY API] /api/* diteruskan ke function epkl-api (netlify/functions/)
+# yang menyuntikkan header bypass ngrok SERVER-SIDE (bukan oleh browser),
+# sehingga interstitial ngrok tidak pernah tersentuh browser — fetch, <img>,
+# dan EventSource (realtime SSE) semuanya aman lewat satu origin yang sama.
 # URUTAN PENTING: aturan ini harus SEBELUM fallback SPA /* di bawah.
 [[redirects]]
   from = "/api/*"
-  to = "https://nervous-ferret-squander.ngrok-free.dev/api/:splat"
+  to = "/.netlify/functions/epkl-api/:splat"
   status = 200
   force = true
 
