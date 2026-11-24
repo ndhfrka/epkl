@@ -300,13 +300,16 @@ function tutupLightbox() {
 function formatTanggal(item) {
   if (item.tanggal_agenda) return item.tanggal_agenda
   if (item.created) {
-    const d = new Date(item.created)
-    return new Intl.DateTimeFormat('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    }).format(d)
+    // [FIX IPHONE/SAFARI] parsing aman format datetime PocketBase
+    const d = tanggalPb(item.created)
+    if (d) {
+      return new Intl.DateTimeFormat('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }).format(d)
+    }
   }
   return '-'
 }

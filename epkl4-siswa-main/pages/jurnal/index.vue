@@ -327,10 +327,11 @@ function parseAgendaDate(s) {
 
 async function getJurnalAgenda() {
   client.autoCancellation(false)
-  // [FIX JURNAL KOSONG SAAT NAVIGASI] dua percobaan: saat berpindah halaman,
-  // identitas user / siswa yang dipantau bisa saja belum siap atau gagal
-  // sesaat sehingga tabel agenda tampil kosong sampai di-refresh manual.
-  for (let percobaan = 1; percobaan <= 2; percobaan++) {
+  // [FIX JURNAL KOSONG SAAT NAVIGASI + PERKUAT MOBILE] tiga percobaan dengan
+  // jeda bertingkat: saat berpindah halaman / di jaringan HP, identitas user
+  // atau koneksi bisa gagal sesaat sehingga tabel agenda tampil kosong palsu
+  // sampai di-refresh manual. Juga: bila ketiganya gagal, data lama dipertahankan.
+  for (let percobaan = 1; percobaan <= 3; percobaan++) {
     try {
       // instansi: hanya agenda milik siswa yang dipantau (pemetaan terbaru) agar sama dengan data siswa
       let sidInstansi = (isInstansi || isGuru) ? await getDipantauId() : null
@@ -374,19 +375,42 @@ async function getJurnalAgenda() {
         await new Promise(r => setTimeout(r, 400))
         continue
       }
-      jurnalAgenda.value = res.map(j => {
-        const d = parseAgendaDate(j.tanggal_agenda) || new Date(j.created)
-        const hari = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d)
-        const tanggal = `${hari}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
-        return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, created: j.created || '', _d: d }
-      })
+      // [FIX IPHONE 7 PLUS / SAFARI] Inilah penyebab tabel jurnal kosong di HP:
+      // record lama (September) punya tanggal_agenda kosong -> parseAgendaDate
+      // null -> new Date(created) memakai format PB "2026-09-10 07:55:24.402Z"
+      // (spasi) -> Safari/iOS mengembalikan Invalid Date -> Intl.format(Invalid)
+      // MELEMPAR "Invalid time value" -> seluruh map gagal -> 3x retry gagal
+      // lagi -> tabel hanya berisi baris kosong "tulis kegiatan". Chrome tidak
+      // kena karena masih mem-parsing format spasi. Sekarang pakai helper aman
+      // tanggalPb() + pelindung per item; satu record rusak tak boleh
+      // mengosongkan tabel.
+      try {
+        jurnalAgenda.value = res.map(j => {
+          let d = parseAgendaDate(j.tanggal_agenda)
+          if (!d) d = tanggalPb(j.created)
+          if (!d) d = new Date(2000, 0, 1)
+          let tanggal = ''
+          try {
+            const hari = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d)
+            tanggal = `${hari}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
+          } catch (_e) {
+            tanggal = String(j.tanggal_agenda || '').trim()
+          }
+          if (!tanggal) tanggal = '-'
+          return { id: j.id, deskripsi: j.deskripsi, tanggal, tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, created: j.created || '', _d: d }
+        })
+      } catch (e) {
+        // bantalan terakhir: mapping minimal tanpa format apa pun
+        jurnalAgenda.value = res.map(j => ({ id: j.id, deskripsi: j.deskripsi, tanggal: String(j.tanggal_agenda || '') || '-', tanggalAgenda: j.tanggal_agenda || '', ttd: j.ttd || '', isValid: j.isValid === true, created: j.created || '', _d: new Date(2000, 0, 1) }))
+      }
       return
     } catch (e) {
-      if (percobaan === 2) {
-        jurnalAgenda.value = []
+      if (percobaan === 3) {
+        // jangan mengosongkan data yang sudah tampil hanya karena jaringan gagal
+        if (jurnalAgenda.value.length === 0) jurnalAgenda.value = []
         return
       }
-      await new Promise(r => setTimeout(r, 400))
+      await new Promise(r => setTimeout(r, percobaan === 1 ? 400 : 1500))
     }
   }
 }
@@ -556,9 +580,8 @@ async function hapusJurnal(j) {
     // cocokkan baris absen yang uraiannya = deskripsi kegiatan, hapus tanda pada
     // tanggal kegiatan tsb; jika tidak sisa tanda sama sekali, baris absen
     // dihapus seluruhnya dari halaman absen.
-    const tglBuat = j.created
-      ? new Date(String(j.created).replace(' ', 'T'))
-      : (parseAgendaDate(j.tanggalAgenda) || null)
+    const tglBuat = tanggalPb(j.created)
+      || (parseAgendaDate(j.tanggalAgenda) || null)
     await hapusAbsenOtomatis(tglBuat, j.deskripsi)
     await getJurnalAgenda()
     cekPengingat(true) // jurnal dihapus → notif pengingat langsung diperiksa ulang
@@ -661,8 +684,9 @@ async function getTtdInstansi() {
     // Sort di client-side saja (hindari ?sort=-created di URL yang kadang 400).
     try {
       res.sort((a, b) => {
-        const ta = new Date(a.created || a.updated || 0).getTime()
-        const tb = new Date(b.created || b.updated || 0).getTime()
+        // [FIX IPHONE/SAFARI] jangan new Date langsung atas format datetime PB (spasi)
+        const ta = (tanggalPb(a.created || a.updated) || { getTime: () => 0 }).getTime()
+        const tb = (tanggalPb(b.created || b.updated) || { getTime: () => 0 }).getTime()
         return tb - ta
       })
     } catch (e) {}
@@ -800,7 +824,26 @@ onBeforeRouteLeave(() => {
 })
 
 onMounted(() => window.addEventListener('beforeunload', flushInfoOnExit))
-onBeforeUnmount(() => window.removeEventListener('beforeunload', flushInfoOnExit))
+// pemutus langganan realtime diisi saat onMounted, dipakai onBeforeUnmount
+let batalLanggananJurnal = null
+let sudahBongkarJurnal = false
+onBeforeUnmount(() => {
+  sudahBongkarJurnal = true
+  window.removeEventListener('beforeunload', flushInfoOnExit)
+  document.removeEventListener('visibilitychange', saatHalamanTerlihat)
+  if (typeof batalLanggananJurnal === 'function') batalLanggananJurnal()
+})
+
+// [PERBAIKAN MOBILE] iPhone/PWA menangguhkan koneksi realtime (SSE) saat
+// aplikasi di latar belakang; event yang terjadi selama ditangguhkan tidak
+// diulang. Saat halaman terlihat lagi, segarkan daftar supaya tidak tampak
+// basi (jurnal yang diunggah saat latar belakang tetap langsung terlihat).
+function saatHalamanTerlihat() {
+  if (document.visibilityState === 'visible' && user.user.value?.id) {
+    getJournals(false)
+    getJurnalAgenda()
+  }
+}
 
 async function getAgendaInfo() {
   client.autoCancellation(false)
@@ -844,15 +887,18 @@ async function isTodayPostJournal() {
       })
     if (response) {
       let res = response
-      const date = new Date(res.created);
+      // [FIX IPHONE/SAFARI] parsing aman format datetime PocketBase
+      const date = tanggalPb(res.created);
       const options = {
         dateStyle: "long",
       }
-      res.created = new Intl.DateTimeFormat('id-ID', options).format(date)
-      // memeriksa jurnal hari ini, jika belum mengirim maka tombol buat jurnal muncul
-      // jika sudah maka tombol buat jurnal akan hilang :D
-      if (res.created == today) {
-        havePostJournalToday.value = true
+      if (date) {
+        res.created = new Intl.DateTimeFormat('id-ID', options).format(date)
+        // memeriksa jurnal hari ini, jika belum mengirim maka tombol buat jurnal muncul
+        // jika sudah maka tombol buat jurnal akan hilang :D
+        if (res.created == today) {
+          havePostJournalToday.value = true
+        }
       }
     }
   } catch (error) {
@@ -868,6 +914,12 @@ async function buatJurnalBaru(isDraft, isUpdate=false) {
   isPosting.value = true
   isSaved.value = false
   client.autoCancellation(false)
+  // [PERBAIKAN MOBILE] selalu pakai identitas user yang hidup saat tombol kirim
+  // ditekan - nilai form.siswa yang diambil saat halaman dibuka bisa kosong
+  // kalau sesi belum selesai dipulihkan (mis. PWA/iPhone dibuka langsung ke
+  // halaman ini), yang membuat jurnal tercipta tanpa pemilik dan tidak pernah
+  // muncul di daftar.
+  if (!isUpdate && user.user.value?.id) form.value.siswa = user.user.value.id
   let response;
   if(isUpdate) {
     formEdit.value.isDraft = isDraft
@@ -883,6 +935,15 @@ async function buatJurnalBaru(isDraft, isUpdate=false) {
     isSaved.value = true
     form.value.elemen = ""
     form.value.deskripsi = ""
+    // [PERBAIKAN MOBILE] segarkan daftar SEGERA setelah menyimpan - jangan
+    // bergantung pada realtime SSE yang di iPhone/PWA sering tertangguh atau
+    // mati, sehingga jurnal yang baru diunggah/diedit langsung terlihat.
+    getJournals(false)
+    getJurnalAgenda()
+    if (!isDraft) {
+      isTodayPostJournal()
+      getCountDraftJournal()
+    }
   }
 }
 
@@ -914,17 +975,10 @@ async function getJournals(loading = true) {
   }
 
   let res = null
-  try {
-    res = await client.collection('jurnal').getList(1, perPage, {
-      filter: filter,
-      expand: "iduka, pembimbing, siswa.siswa, elemen",
-      sort: "-isDraft, isValid, -created",
-      requestKey: null
-    })
-  } catch (e) {
-    // [FIX JURNAL KOSONG] permintaan sempat gagal saat navigasi -> coba
-    // sekali lagi sebelum menyerah agar daftar tidak kosong palsu
-    await new Promise(r => setTimeout(r, 400))
+  // [PERKUAT MOBILE] tiga percobaan dengan jeda bertingkat: di jaringan HP
+  // (lewat tunnel) kegagalan sesaat mudah terjadi, jangan langsung menyerah
+  // dan menampilkan daftar kosong palsu.
+  for (let percobaan = 1; percobaan <= 3 && !res; percobaan++) {
     try {
       res = await client.collection('jurnal').getList(1, perPage, {
         filter: filter,
@@ -932,9 +986,10 @@ async function getJournals(loading = true) {
         sort: "-isDraft, isValid, -created",
         requestKey: null
       })
-    } catch (e2) {
-      console.error('[jurnal] gagal memuat daftar jurnal:', e2)
+    } catch (e) {
       res = null
+      if (percobaan < 3) await new Promise(r => setTimeout(r, percobaan === 1 ? 400 : 1500))
+      else console.error('[jurnal] gagal memuat daftar jurnal:', e)
     }
   }
   if (res) {
@@ -943,13 +998,18 @@ async function getJournals(loading = true) {
     notValidCount.value = 0
     // console.log(journals.value)
     // konversi waktu UTC dari server ke full date lokal indo
+    // [FIX IPHONE/SAFARI] parsing aman + pelindung per item
     for (let i = 0; i < journals.value.items.length; i++) {
-      const date = new Date(journals.value.items[i].created);
+      const date = tanggalPb(journals.value.items[i].created);
       const options = {
         dateStyle: "full",
         timeStyle: "short"
       };
-      journals.value.items[i].created = new Intl.DateTimeFormat('id-ID', options).format(date);
+      if (date) {
+        try {
+          journals.value.items[i].created = new Intl.DateTimeFormat('id-ID', options).format(date)
+        } catch (e) {}
+      }
 
       if (!journals.value.items[i].isValid) notValidCount.value++
     }
@@ -977,12 +1037,17 @@ async function pagination(page, loading = true) {
   })
   if (res) {
     for(let i=0; i<res.items.length; i++) {
-      const date = new Date(res.items[i].created);
+      // [FIX IPHONE/SAFARI] parsing aman + pelindung per item
+      const date = tanggalPb(res.items[i].created);
       const options = {
         dateStyle: "full",
         timeStyle: "short"
       };
-      res.items[i].created = new Intl.DateTimeFormat('id-ID', options).format(date);
+      if (date) {
+        try {
+          res.items[i].created = new Intl.DateTimeFormat('id-ID', options).format(date)
+        } catch (e) {}
+      }
     }
 
     journals.value.page = res.page
@@ -1063,7 +1128,7 @@ async function getPesertaByIdUser() {
   let res = await client.collection('student_users').getOne(user?.user.value.id, {
     expand: `siswa`
   })
-  if (res) {
+  if (res && res.expand && res.expand.siswa) {
     // info header agenda harian (jangan menimpa isian manual dari agenda_info)
     if (!infoNama.value) infoNama.value = res.expand.siswa.nama
     if (!infoNis.value) infoNis.value = res.expand.siswa.nis
@@ -1113,12 +1178,17 @@ async function getKomentarByIdJurnal(journal) {
     pratinjauKomentar.value = res.items[0]
     await client.collection('jurnal_komentar').update(pratinjauKomentar.value.id, { isOpen: true })
     isLoadingKomentar.value = false
-    const date = new Date(pratinjauKomentar.value.created);
+    // [FIX IPHONE/SAFARI] parsing aman + pelindung
+    const date = tanggalPb(pratinjauKomentar.value.created);
     const options = {
       dateStyle: "full",
       timeStyle: "short"
     }
-    pratinjauKomentar.value.created = new Intl.DateTimeFormat('id-ID', options).format(date);
+    if (date) {
+      try {
+        pratinjauKomentar.value.created = new Intl.DateTimeFormat('id-ID', options).format(date)
+      } catch (e) {}
+    }
   }
 }
 
@@ -1150,6 +1220,12 @@ onMounted(() => {
   getPesertaByIdUser()
   getCountDraftJournal()
   client.autoCancellation(false)
+  // [PENTING] subscribe() mengembalikan PROMISE yang memuat fungsi
+  // pembatalan, bukan fungsinya langsung. Sebelumnya promise ini disimpan
+  // lalu dipanggil saat halaman ditutup, memicu
+  // "TypeError: Se is not a function" setiap berpindah dari halaman jurnal.
+  // Tangani dengan benar: simpan fungsinya saat promise selesai; bila
+  // halaman sudah ditutup lebih dulu, batalkan seketika.
   client.collection('jurnal').subscribe('*', function (e) {
     if (e.action == 'create' || e.action == 'update') {
       getJournals(false)
@@ -1157,7 +1233,14 @@ onMounted(() => {
       isTodayPostJournal()
       getCountDraftJournal()
     }
-  }, {})
+  }, {}).then((batal) => {
+    if (sudahBongkarJurnal) {
+      try { batal() } catch (e) {}
+      return
+    }
+    batalLanggananJurnal = batal
+  }).catch(() => {})
+  document.addEventListener('visibilitychange', saatHalamanTerlihat)
 })
 </script>
 

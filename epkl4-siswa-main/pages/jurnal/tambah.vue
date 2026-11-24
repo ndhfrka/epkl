@@ -629,14 +629,28 @@ function adaKataSakitIzin(teks) {
 
 function ekstrakKoordinatJurnal(url) {
   if (!url) return ''
-  let m = String(url).match(/(-?\d{1,3}\.\d{4,})\s*,\s*(-?\d{1,3}\.\d{4,})/)
+  const s = String(url)
+  // 1) PIN TEMPAT: pola !3dlat!4dlon - koordinat pin tempat usaha.
+  //    WAJIB dicek lebih dulu: tautan share Maps juga memuat koordinat
+  //    PUSAT PETA (@lat,lon) yang bisa 200-700 m dari pin tempat, sehingga
+  //    cek radius 100 m salah menolak padahal siswa berada di tempat PKL.
+  let m = s.match(/!3d(-?\d{1,3}\.\d{4,})!4d(-?\d{1,3}\.\d{4,})/)
+  // 2) pusat peta @lat,lon
+  if (!m) m = s.match(/@(-?\d{1,3}\.\d{4,}),(-?\d{1,3}\.\d{4,})/)
+  // 3) pasangan lat,lon lain di dalam URL (q=, ll=, dll.)
+  if (!m) m = s.match(/(-?\d{1,3}\.\d{4,})\s*,\s*(-?\d{1,3}\.\d{4,})/)
   if (m) return `${m[1]},${m[2]}`
+  // 4) parameter q=/query=/destination= yang koordinatnya kurang dari 4 desimal
   try {
     const u = new URL(url)
-    const q = u.searchParams.get('q') || u.searchParams.get('query')
-    if (q) m = q.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/)
+    const q = u.searchParams.get('q') || u.searchParams.get('query') || u.searchParams.get('destination')
+    if (q) m = q.match(/^(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)$/)
   } catch {}
   return m ? `${m[1]},${m[2]}` : ''
+}
+
+function adalahTautanPendekMaps(url) {
+  return /maps\.app\.goo\.gl|goo\.gl\/maps/i.test(String(url || ''))
 }
 
 function hitungJarakJurnal(lat1, lon1, lat2, lon2) {
@@ -649,6 +663,79 @@ function hitungJarakJurnal(lat1, lon1, lat2, lon2) {
             Math.cos(p1) * Math.cos(p2) *
             Math.sin(dl / 2) * Math.sin(dl / 2)
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+// ========================================================================
+//  [PEMANASAN GPS - PENTING UNTUK iPHONE]
+//  Safari/iPhone sering butuh 15-60 detik untuk mendapatkan posisi GPS
+//  pertama (apalagi di dalam ruangan), dan getCurrentPosition yang gagal
+//  karena timeout sering langsung gagal lagi saat dipanggil ulang.
+//  Solusinya: watchPosition dijalankan sejak halaman dibuka supaya posisi
+//  sudah siap saat tombol kirim ditekan.
+// ========================================================================
+let posisiTerakhir = null
+let idWatchGPS = null
+let kodeGagalGPS = 0
+
+function normPosisi(pos) {
+  return {
+    lat: pos.coords.latitude,
+    lon: pos.coords.longitude,
+    akurasi: pos.coords.accuracy || 0,
+    waktu: pos.timestamp || Date.now()
+  }
+}
+
+function mulaiPemanasanGPS() {
+  if (!navigator.geolocation || idWatchGPS !== null) return
+  try {
+    idWatchGPS = navigator.geolocation.watchPosition(
+      (pos) => {
+        kodeGagalGPS = 0
+        posisiTerakhir = normPosisi(pos)
+      },
+      (err) => { kodeGagalGPS = (err && err.code) || 0 },
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 20000 }
+    )
+  } catch (e) {
+    idWatchGPS = null
+  }
+}
+
+function hentikanPemanasanGPS() {
+  if (idWatchGPS !== null && navigator.geolocation) {
+    try { navigator.geolocation.clearWatch(idWatchGPS) } catch (e) {}
+  }
+  idWatchGPS = null
+}
+
+// Tunggu satu update terbaru dari watch GPS (maks msTunggu milidetik).
+// Jika izin lokasi diketahui ditolak, langsung selesai supaya tidak menunggu.
+function tungguPosisiWatch(msTunggu) {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation || kodeGagalGPS === 1) { resolve(null); return }
+    let selesai = false
+    let id = null
+    const timer = setTimeout(() => tutup(null), msTunggu)
+    function tutup(hasil) {
+      if (selesai) return
+      selesai = true
+      clearTimeout(timer)
+      if (id !== null) { try { navigator.geolocation.clearWatch(id) } catch (e) {} }
+      resolve(hasil)
+    }
+    try {
+      id = navigator.geolocation.watchPosition(
+        (pos) => tutup(normPosisi(pos)),
+        (err) => { if (err && err.code === 1) tutup(null) },
+        { enableHighAccuracy: true, timeout: msTunggu, maximumAge: 15000 }
+      )
+    } catch (e) { tutup(null) }
+  })
+}
+
+function ambilPosisiSekali(opsi) {
+  return new Promise((res2, rej2) => navigator.geolocation.getCurrentPosition(res2, rej2, opsi))
 }
 
 async function cekGeofencingJurnal() {
@@ -672,7 +759,10 @@ async function cekGeofencingJurnal() {
         if (k) { koordinatPKL = k; break }
       }
       if (!koordinatPKL) {
-        alert('Lokasi PKL Anda tidak memiliki koordinat valid. Perbarui link Google Maps di menu Lokasi PKL (pastikan formatnya mengandung koordinat).')
+        const adaPendek = (res.items || []).some((rec) => adalahTautanPendekMaps(rec.link_maps))
+        alert(adaPendek
+          ? 'Link Google Maps Anda berupa tautan pendek (maps.app.goo.gl) yang tidak memuat koordinat. Buka tautan itu di browser, tunggu peta terbuka, salin URL lengkapnya (berisi angka seperti @-6.1234,107.5678 atau !3d..!4d..), lalu tempel kembali di menu Lokasi PKL.'
+          : 'Lokasi PKL Anda tidak memiliki koordinat valid. Perbarui link Google Maps di menu Lokasi PKL (buka tempat Anda di Google Maps, ketuk Bagikan lalu Salin tautan yang mengandung koordinat).')
         resolve(false)
         return
       }
@@ -685,33 +775,40 @@ async function cekGeofencingJurnal() {
         return
       }
 
-      // Ambil posisi GPS; jika gagal dengan akurasi tinggi, coba sekali lagi
-      // dengan mode akurasi rendah (Wi-Fi/jaringan).
-      function ambilPosisi(opsi) {
-        return new Promise((res2, rej2) => navigator.geolocation.getCurrentPosition(res2, rej2, opsi))
-      }
-
+      // Ambil posisi GPS secara bertahap (tahan gagal, ramah iPhone):
+      // 1) posisi dari pemanasan GPS bila masih segar (<= 2 menit),
+      // 2) tunggu update langsung dari watch GPS aktif (maks 15 dtk),
+      // 3) getCurrentPosition mode hemat (Wi-Fi/jaringan - cepat di dalam ruangan),
+      // 4) getCurrentPosition mode akurasi tinggi sebagai percobaan terakhir.
       let position = null
-      try {
-        position = await ambilPosisi({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })
-      } catch (err1) {
+      if (posisiTerakhir && (Date.now() - posisiTerakhir.waktu) <= 120000) {
+        position = posisiTerakhir
+      }
+      if (!position) position = await tungguPosisiWatch(15000)
+      if (!position) {
         try {
-          position = await ambilPosisi({ enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 })
-        } catch (err2) {
-          const kode = (err2 && err2.code) || (err1 && err1.code)
-          let pesan = 'Gagal mendapatkan lokasi Anda. Pastikan Anda mengizinkan akses lokasi (GPS) pada browser/perangkat Anda.'
-          if (kode === 1) pesan = 'Akses lokasi DITOLAK. Izinkan akses lokasi untuk situs ini pada browser Anda (ketuk ikon gembok di address bar).'
-          else if (kode === 2) pesan = 'Lokasi tidak dapat ditentukan. Coba keluar ruangan / nyalakan GPS lalu coba lagi.'
-          else if (kode === 3) pesan = 'Waktu tunggu GPS habis. Coba lagi di tempat dengan sinyal lebih baik.'
-          alert(pesan)
-          resolve(false)
-          return
+          position = normPosisi(await ambilPosisiSekali({ enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 }))
+        } catch (err1) {
+          try {
+            position = normPosisi(await ambilPosisiSekali({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }))
+          } catch (err2) {
+            const kode = (err2 && err2.code) || (err1 && err1.code) || kodeGagalGPS
+            let pesan = 'Gagal mendapatkan lokasi Anda. Pastikan Anda mengizinkan akses lokasi (GPS) pada browser/perangkat Anda.'
+            if (kode === 1) pesan = 'Akses lokasi DITOLAK. Pada iPhone: Pengaturan → Safari → Lokasi → "Tanyakan/Berizinkan", lalu buka ulang situs ini dan ketuk Izinkan saat diminta. Pada Android/Chrome: ketuk ikon gembok di address bar → izinkan lokasi.'
+            else if (kode === 2) pesan = 'Lokasi tidak dapat ditentukan. Nyalakan Layanan Lokasi (iPhone: Pengaturan → Privasi & Keamanan → Layanan Lokasi), nyalakan Wi-Fi, lalu coba lagi dekat jendela / luar ruangan.'
+            else if (kode === 3) pesan = 'Waktu tunggu GPS habis. Di dalam ruangan GPS bisa butuh 1-2 menit: berdiri dekat jendela, nyalakan Wi-Fi, tunggu lalu coba lagi. Jika sering gagal, buka halaman ini lebih awal supaya GPS sempat mencari posisi sebelum Anda menekan kirim.'
+            alert(pesan)
+            resolve(false)
+            return
+          }
         }
       }
 
-      const jarak = hitungJarakJurnal(position.coords.latitude, position.coords.longitude, latPKL, lonPKL)
+      const jarak = hitungJarakJurnal(position.lat, position.lon, latPKL, lonPKL)
       if (jarak > 100) {
-        alert(`Jurnal hanya dapat diunggah dari dalam wilayah PKL Anda (Jarak: ${Math.round(jarak)} meter dari lokasi PKL). Jika hari ini Anda sakit atau izin, tuliskan kata "sakit" atau "izin" pada uraian kegiatan lalu kirim kembali.`)
+        let tambahan = ''
+        if (position.akurasi > 150) tambahan = ` Catatan: akurasi GPS Anda saat ini ±${Math.round(position.akurasi)} meter - coba di dekat jendela / luar ruangan lalu kirim ulang.`
+        alert(`Jurnal hanya dapat diunggah dari dalam wilayah PKL Anda (Jarak: ${Math.round(jarak)} meter dari pin lokasi PKL).${tambahan} Jika hari ini Anda sakit atau izin, tuliskan kata "sakit" atau "izin" pada uraian kegiatan lalu kirim kembali.`)
         resolve(false)
         return
       }
@@ -848,11 +945,14 @@ async function isTodayPostJournal() {
       let res = response
       // simpan record mentah: isValid dipakai utk memutuskan kunci edit
       jurnalHariIni.value = res
-      const date = new Date(res.created)
+      // [FIX IPHONE/SAFARI] parsing aman format datetime PocketBase
+      const date = tanggalPb(res.created)
       const options = { dateStyle: "long" }
-      res.created = new Intl.DateTimeFormat('id-ID', options).format(date)
-      if (res.created == today) {
-        havePostJournalToday.value = true
+      if (date) {
+        res.created = new Intl.DateTimeFormat('id-ID', options).format(date)
+        if (res.created == today) {
+          havePostJournalToday.value = true
+        }
       }
     }
   } catch (error) {}
@@ -862,10 +962,12 @@ onMounted(() => {
   fetchServerTime()
   getElemenCp()
   isTodayPostJournal()
+  mulaiPemanasanGPS()
 })
 
 onBeforeUnmount(() => {
   hentikanStream()
+  hentikanPemanasanGPS()
 })
 </script>
 

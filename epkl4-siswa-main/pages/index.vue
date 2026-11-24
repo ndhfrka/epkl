@@ -1128,10 +1128,13 @@ async function isTodayPostJournal() {
     })
     if(response) {
       let res = response
-      const date = new Date(res.created)
+      // [FIX IPHONE/SAFARI] parsing aman format datetime PocketBase
+      const date = tanggalPb(res.created)
       const options = { dateStyle: "long" }
-      res.created = new Intl.DateTimeFormat('id-ID', options).format(date)
-      if(res.created == today) havePostJournalToday.value = true
+      if (date) {
+        res.created = new Intl.DateTimeFormat('id-ID', options).format(date)
+        if(res.created == today) havePostJournalToday.value = true
+      }
       isLoadingJournaToday.value = false
     }
   } catch(error) {
