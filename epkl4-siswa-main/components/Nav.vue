@@ -11,6 +11,10 @@
         <div class="side-nav__pengingat">
           <PengingatBell placement="right" />
         </div>
+        <!-- Lonceng notifikasi siswa alfa (guru per jurusan) -->
+        <div class="side-nav__pengingat">
+          <NotifikasiGuru placement="right" />
+        </div>
         <nav class="side-nav__menu">
           <ul class="nav-list">
             <li class="nav-item">

@@ -50,6 +50,10 @@
           <div class="topbar-action-item">
             <PengingatBell v-if="showNotifications" placement="bottom" />
           </div>
+          <!-- Lonceng notifikasi siswa alfa (guru per jurusan) -->
+          <div class="topbar-action-item">
+            <NotifikasiGuru placement="bottom" />
+          </div>
         </slot>
       </div>
     </div>

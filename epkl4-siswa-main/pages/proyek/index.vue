@@ -90,7 +90,7 @@
                       </span>
                     </template>
                   </td>
-                  <td v-for="h in jumlahHari" :key="row.absen.id + '-' + h" class="col-hari cell-day" :class="row.absen.marks[h] ? 'mark-' + row.absen.marks[h] : ''" title="Klik: ✓ → S → I → kosong (tanda Alfa otomatis tidak bisa diubah)" @click="toggleDay(row.absen, h)">
+                  <td v-for="h in jumlahHari" :key="row.absen.id + '-' + h" class="col-hari cell-day" :class="row.absen.marks[h] ? 'mark-' + row.absen.marks[h] : ''" :title="isInstansi || isGuru ? 'Klik: ✓ → S → I → kosong — guru bisa menghapus tanda Alfa dengan klik sel A' : 'Klik: ✓ → S → I → kosong (tanda Alfa otomatis tidak bisa diubah)'" @click="toggleDay(row.absen, h)">
                     <span v-if="row.absen.marks[h]">{{ markSymbol(row.absen.marks[h]) }}</span>
                   </td>
                 </tr>
@@ -538,12 +538,39 @@ async function cekGeofencing() {
 }
 
 async function toggleDay(a, h) {
-  if (isInstansi || isGuru) return
-  // [ATURAN ALFA] tanda ALFA tidak boleh diubah/dihapus siswa —
+  const guruMode = isInstansi || isGuru
+  // [ATURAN ALFA — SISWA] tanda ALFA tidak boleh diubah/dihapus siswa —
   // satu klik pada sel 'x' akan melingkar ke kosong dan menghapus catatan alfa.
-  if (String((a.marks || {})[h] ?? '') === 'x') {
+  if (!guruMode && String((a.marks || {})[h] ?? '') === 'x') {
     setStatus('err', 'Tanda Alfa tidak bisa diubah atau dihapus — hubungi guru bila ada kekeliruan.')
     alert('Tanda Alfa tidak bisa diubah atau dihapus — hubungi guru bila ada kekeliruan.')
+    return
+  }
+  // [ATURAN ALFA — GURU] guru/instansi boleh menghapus tanda Alfa: klik sel A
+  // menghapus tandanya; bila baris alfa otomatis jadi benar-benar kosong,
+  // barisnya ikut dihapus supaya tabel tetap rapi.
+  if (guruMode && String((a.marks || {})[h] ?? '') === 'x') {
+    const marks = { ...a.marks }
+    delete marks[h]
+    a.marks = marks // update optimis
+    client.autoCancellation(false)
+    try {
+      const masihAdaTanda = Object.values(marks).some(v => String(v ?? '').trim() !== '')
+      const barisAlfa = String(a.uraian || '').trim() === 'Alpa — tidak mengisi jurnal PKL'
+      if (!masihAdaTanda && barisAlfa) {
+        await client.collection('absen').delete(a.id)
+        await getAbsen()
+        setStatus('ok', 'Tanda Alfa dihapus beserta barisnya ✓')
+      } else {
+        await client.collection('absen').update(a.id, { marks })
+        setStatus('ok', 'Tanda Alfa dihapus ✓')
+        cekPengingat(true)
+      }
+    } catch (e) {
+      getAbsen() // kembalikan kondisi asli kalau gagal
+      setStatus('err', 'Gagal menghapus tanda Alfa: ' + pesanError(e))
+      alert('Gagal menghapus tanda Alfa: ' + pesanError(e))
+    }
     return
   }
   const marks = { ...a.marks }
@@ -554,7 +581,7 @@ async function toggleDay(a, h) {
   else if (idx === MARK_CYCLE.length - 1) targetMark = null
   else targetMark = MARK_CYCLE[idx + 1]
 
-  if (targetMark === 'v') {
+  if (targetMark === 'v' && !guruMode) {
     const isWithinRadius = await cekGeofencing()
     if (!isWithinRadius) return
   }
