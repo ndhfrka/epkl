@@ -6,12 +6,9 @@
 #   2. Base directory        : epkl4-siswa-main
 #      Build command         : npm run generate   (sudah diatur di bawah)
 #      Publish directory     : .output/public     (sudah diatur di bawah)
-#   3. Site settings -> Environment variables, tambahkan:
-#        PB_API_BASE_URL = alamat PocketBase PUBLIK Anda
-#                          contoh: https://epkl-pb.example.com
-#        PB_API_PORT     = 443   (standar HTTPS)
+#   3. Alamat API PocketBase sudah ditulis di [build.environment] di bawah.
 #      URL ini DI-BAK saat build, jadi kalau alamat PocketBase berubah,
-#      jalankan ulang deploy (Deploys -> Trigger deploy).
+#      ubah nilai di bawah lalu jalankan ulang deploy.
 #
 # CATATAN: Netlify hanya menjalankan FRONTEND (statis). PocketBase
 # (backend) tidak bisa berjalan di Netlify — jalankan di PC dengan
@@ -21,6 +18,14 @@
 [build]
   command = "npm run generate"
   publish = ".output/public"
+
+# Variabel build: alamat API PocketBase yang akan DI-BAK ke frontend statis.
+# (Ditulis di sini karena setting env var lewat API dashboard Netlify
+#  berbayar di akun gratis — lewat netlify.toml efeknya sama.)
+# Kalau alamat PocketBase berubah, ubah baris di bawah lalu deploy ulang.
+[build.environment]
+  PB_API_BASE_URL = "https://epkl-api.nadhifbasmalah00.workers.dev"
+  PB_API_PORT = "443"
 
 # SPA fallback: semua route yang tidak punya file HTML dilayani 200.html
 # (aplikasi memakai mode SPA ssr:false — navigasi ditangani Vue Router)
