@@ -108,12 +108,13 @@ export const useAbsenOtomatis = () => {
       let berubah = false
       for (const rec of existing) {
         if (String(rec.uraian || '').trim() !== teks) continue
-        // [ATURAN ALFA] baris yang memuat tanda alfa ('x') tidak boleh dihapus
-        // lewat jalur ini — kalau tidak, siswa nakal bisa membuat jurnal dengan
-        // teks persis "Alpa — tidak mengisi jurnal PKL" lalu menghapusnya untuk
-        // membersihkan catatan alpha-nya.
+        // [ATURAN VALIDASI] baris yang sudah memiliki tanda APA PUN (✓ hadir /
+        // S sakit / I izin / x alfa — dari upload jurnal atau validasi guru)
+        // tidak boleh dihapus atau dikurangi tandanya lewat jalur ini.
+        // Kalau tidak, siswa bisa menghapus jurnalnya untuk membersihkan
+        // catatan absen yang sudah tercatat.
         const marksRec = (rec.marks && typeof rec.marks === 'object' && !Array.isArray(rec.marks)) ? rec.marks : {}
-        if (Object.values(marksRec).some(v => String(v) === 'x')) continue
+        if (Object.values(marksRec).some(v => String(v ?? '').trim() !== '')) continue
         if (!d) {
           await client.collection('absen').delete(rec.id)
           berubah = true

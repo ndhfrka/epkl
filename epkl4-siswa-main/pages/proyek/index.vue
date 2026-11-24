@@ -85,7 +85,7 @@
                     </template>
                     <template v-else>
                       <span class="uraian-text" :class="{ 'info-empty': !row.absen.uraian }" :title="(isInstansi || isGuru) ? '' : 'Klik untuk mengubah'" @click="startEdit(row.absen)">{{ row.absen.uraian || ((isInstansi || isGuru) ? '—' : 'klik untuk isi') }}</span>
-                      <span v-if="!isInstansi && !isGuru && !punyaAlpa(row.absen)" class="row-actions">
+                      <span v-if="isInstansi || isGuru || !punyaTanda(row.absen)" class="row-actions">
                         <button class="btn-action" title="Hapus baris" @click="hapusAbsen(row.absen)"><i class="bi bi-trash-fill"></i></button>
                       </span>
                     </template>
@@ -248,6 +248,18 @@ function markSymbol(m) {
 function punyaAlpa(a) {
   const marks = (a && a.marks && typeof a.marks === 'object' && !Array.isArray(a.marks)) ? a.marks : {}
   return Object.values(marks).some(v => String(v) === 'x')
+}
+
+// [ATURAN VALIDASI] cek apakah baris absen sudah memiliki tanda APA PUN
+// (✓ hadir / S sakit / I izin / Alfa). Baris dengan tanda berarti sudah
+// "diupload dan divalidasi" — dibuat lewat upload jurnal (tandaiAbsenOtomatis
+// menandai v/s/i saat jurnal disimpan) dan/atau divalidasi guru lewat klik
+// sel. Baris seperti ini TIDAK BOLEH dihapus oleh siswa. Hanya baris kosong
+// tanpa tanda sama sekali (draf yang belum divalidasi) yang masih bisa
+// dihapus siswa untuk merapikan kesalahan ketik.
+function punyaTanda(a) {
+  const marks = (a && a.marks && typeof a.marks === 'object' && !Array.isArray(a.marks)) ? a.marks : {}
+  return Object.values(marks).some(v => String(v ?? '').trim() !== '')
 }
 
 // ====== [FITUR LIBUR OTOMATIS] ======
@@ -676,12 +688,22 @@ async function saveEdit() {
 }
 
 async function hapusAbsen(a) {
-  if (isInstansi || isGuru) return
+  // [ATURAN VALIDASI] guru/instansi tetap boleh menghapus baris apa pun
+  // (termasuk yang sudah divalidasi) untuk merapikan kesalahan; siswa hanya
+  // boleh menghapus baris yang belum memiliki tanda sama sekali.
+  const guruMode = isInstansi || isGuru
   // [ATURAN ALFA] baris yang mengandung tanda ALFA tidak boleh dihapus siswa
   // supaya catatan alfa otomatis tetap tercatat permanen.
-  if (punyaAlpa(a)) {
+  if (!guruMode && punyaAlpa(a)) {
     setStatus('err', 'Baris dengan tanda Alfa tidak bisa dihapus.')
     alert('Baris dengan tanda Alfa tidak bisa dihapus.')
+    return
+  }
+  // [ATURAN VALIDASI] baris dengan tanda ✓/S/I (sudah diupload lewat jurnal
+  // dan/atau divalidasi guru) tidak boleh dihapus siswa.
+  if (!guruMode && punyaTanda(a)) {
+    setStatus('err', 'Baris absen yang sudah divalidasi tidak bisa dihapus oleh siswa. Hubungi guru bila ada kekeliruan.')
+    alert('Baris absen yang sudah divalidasi tidak bisa dihapus oleh siswa. Hubungi guru bila ada kekeliruan.')
     return
   }
   if (!confirm('Hapus baris absen ini?')) return
