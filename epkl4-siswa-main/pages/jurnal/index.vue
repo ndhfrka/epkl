@@ -183,7 +183,6 @@
                           <button class="btn btn-outline-secondary btn-sm" @click="cancelEdit()">Batal</button>
                         </div>
                       </template>
-                      <span v-else class="fill-hint" @click="startNew('baru-' + n)"><i class="bi bi-plus-lg"></i> tulis kegiatan</span>
                     </td>
                     <td class="col-status"></td>
                     <td class="col-ttd"></td>
@@ -380,7 +379,7 @@ async function getJurnalAgenda() {
       // null -> new Date(created) memakai format PB "2026-09-10 07:55:24.402Z"
       // (spasi) -> Safari/iOS mengembalikan Invalid Date -> Intl.format(Invalid)
       // MELEMPAR "Invalid time value" -> seluruh map gagal -> 3x retry gagal
-      // lagi -> tabel hanya berisi baris kosong "tulis kegiatan". Chrome tidak
+      // lagi -> tabel hanya berisi baris kosong tanpa jurnal. Chrome tidak
       // kena karena masih mem-parsing format spasi. Sekarang pakai helper aman
       // tanggalPb() + pelindung per item; satu record rusak tak boleh
       // mengosongkan tabel.
@@ -462,12 +461,6 @@ function startEdit(j) {
   }
   editingId.value = j.id
   editingText.value = j.deskripsi
-}
-
-function startNew(key) {
-  if (isInstansi || isGuru) return
-  editingId.value = key
-  editingText.value = ''
 }
 
 function cancelEdit() {
@@ -1577,3 +1570,4 @@ onMounted(() => {
   cursor: not-allowed;
 }
 </style>
+

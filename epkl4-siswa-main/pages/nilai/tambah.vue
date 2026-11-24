@@ -143,9 +143,15 @@ async function buatBaru() {
         let payload = { ...form.value }
         if (!(payload.foto_jurnal_nilai instanceof Blob)) delete payload.foto_jurnal_nilai
         if (!(payload.logo instanceof Blob)) delete payload.logo
+        // [NILAI TERVALIDASI] hanya guru/instansi yang boleh mengisi/memperbarui
+        // nilai (siswa sudah tidak bisa) — jadi penyimpanan oleh mereka memang
+        // adalah validasinya sendiri. Tanpa ini tidak ada jalur apa pun yang
+        // mengubah isValid dan siswa selamanya melihat "Nilai sedang proses
+        // validasi" meski nilai sudah diisi lengkap.
+        payload.isValid = true
         await client.collection('nilai').update(editId, payload)
       } else {
-        await client.collection('nilai').create(form.value)
+        await client.collection('nilai').create({ ...form.value, isValid: true })
       }
       isSending.value = false
       isSaved.value = true
