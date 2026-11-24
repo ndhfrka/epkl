@@ -5,6 +5,11 @@
 // Seluruh trafik API kini berjalan di origin yang sama dengan UI: satu URL.
 const NGROK = "https://nervous-ferret-squander.ngrok-free.dev";
 
+// Routing bawaan Functions v2 — /api/* diarahkan LANGSUNG ke function ini oleh
+// platform Netlify, tanpa perlu aturan redirect di netlify.toml/_redirects.
+// (Aturan redirect tetap ada sebagai cadangan, tapi ini yang menjamin jalan.)
+export const config = { path: "/api/*" };
+
 export default async (req) => {
   const url = new URL(req.url);
 
