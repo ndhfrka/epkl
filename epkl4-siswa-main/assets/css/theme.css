@@ -865,6 +865,16 @@ a.link:hover {
     padding-bottom: calc(var(--m3-nav-bar-height) + var(--m3-safe-bottom));
   }
 
+  /* [PERBAIKAN LOGIN] Padding di atas hanya relevan untuk halaman yang
+     benar-benar memakai Top App Bar + Bottom Nav. Halaman login tidak punya
+     keduanya, sehingga padding membuat kotak kosong 64px di atas dan 80px di
+     bawah yang mengganjal tampilan mobile. .m3-login-shell hanya ada di
+     layouts/login.vue, jadi selector :has ini tidak menyentuh halaman lain. */
+  body:has(.m3-login-shell) {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
   .container-fluid {
     padding-left: calc(var(--m3-content-padding-x) + var(--m3-safe-left)) !important;
     padding-right: calc(var(--m3-content-padding-x) + var(--m3-safe-right)) !important;
