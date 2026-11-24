@@ -22,13 +22,16 @@ export const urlDasarPocketBase = () => {
     return "http://127.0.0.1:" + port
   }
   // [PRODUKSI SAME-ORIGIN] keduanya kosong + build produksi (nuxt generate):
-  // pakai URL relatif "" sehingga API diambil dari asal yang sama dengan UI.
+  // pakai ORIGIN eksplisit (window.location.origin) sehingga API diambil dari
+  // asal yang sama dengan UI — PENTING: jangan string kosong "" karena SDK
+  // PocketBase/fetch menyelesaikan URL relatif terhadap HALAMAN yang aktif,
+  // sehingga di /login/ permintaan menjadi /login/api/... (404).
   // Satu build ini melayani dua tempat sekaligus:
   //  • pb_public di PC — PocketBase sendiri menyajikan UI di :8090 (LAN)
-  //  • Netlify — /api/* diteruskan server-side ke tunnel ngrok lewat aturan
-  //    proxy di public/_redirects (dan netlify.toml untuk build git)
+  //  • Netlify — /api/* diteruskan server-side ke tunnel ngrok lewat function
+  //    epkl-api (routing bawaan Functions v2: config.path)
   if (import.meta.client) {
-    if (!import.meta.dev) return ""
+    if (!import.meta.dev) return window.location.origin
     // [DEV] nuxt dev (:3000) sementara PocketBase tetap di :8090
     return window.location.protocol + "//" + window.location.hostname + ":8090"
   }
